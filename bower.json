@@ -1,7 +1,7 @@
 {
   "name": "carve",
   "version": "0.0.1",
-  "description": "2.5 dimension svg plot for carving heterogenous data. uses d3, underscore, and science.js"
+  "description": "2.5 dimension svg plot for carving heterogenous data. uses d3, underscore, and science.js",
   "dependencies": {
     "d3": "git://github.com/mbostock/d3.git#~3.0.8",
     "underscore": "git://github.com/documentcloud/underscore.git#~1.4.4",
@@ -12,6 +12,7 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "components"
+    "components",
+    "examples"
   ]
 }
