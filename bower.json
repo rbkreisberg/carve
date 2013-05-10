@@ -1,0 +1,16 @@
+{
+  "name": "carve",
+  "version": "0.0.1",
+  "dependencies": {
+    "d3": "git://github.com/mbostock/d3.git#~3.0.8",
+    "underscore": "git://github.com/documentcloud/underscore.git#~1.4.4",
+    "science": "git://github.com/jasondavies/science.js.git"
+  },
+  "devDependencies": {},
+  "main": "carve.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}
