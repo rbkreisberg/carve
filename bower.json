@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "d3": "~3.0.8",
-    "science": "~1.9.1",
+    "science": "git://github.com/jasondavies/science.js.git",
     "underscore": "~1.4.4"
   },
   "main": "carve.js",
