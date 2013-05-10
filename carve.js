@@ -527,7 +527,7 @@ function drawMultipleKDE(data_points) {
   if ( kde_categories.length ) {  
     kde_categories.forEach( function (d) { 
       data[d] = {};
-    d3.keys(kde[d]).forEach(, function (e) { 
+    d3.keys(kde[d]).forEach( function (e) { 
       data[d][e] = sampleEstimates(kde[d][e],num_domain); 
     }); 
   });
