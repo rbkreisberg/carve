@@ -6,7 +6,6 @@
     "science": "~1.9.1",
     "underscore": "~1.4.4"
   },
-  "devDependencies": {},
   "main": "carve.js",
   "ignore": [
     "**/.*",
