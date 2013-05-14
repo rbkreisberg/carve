@@ -1,0 +1,40 @@
+.data_point {
+    stroke-width: 0px;
+    shape-rendering: crispEdges;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2.0px;
+    shape-rendering: crispEdges;
+}
+
+.kde_line {
+    shape-rendering: none;
+    stroke-width: 1.5px;
+    visibility: hidden;
+}
+
+.y.axis path, .y.axis line{
+    stroke:#aaa;
+}
+
+.x.axis path, .x.axis line {
+    stroke:none;
+}
+
+.axis_label, .ticks {
+    font-size:16px;
+}
+
+.data_totals {
+    font-size: 20px;
+    font-weight: 400;
+    shape-rendering: crispEdges;
+}
+
+.data_labels {
+    font-size: 18px;
+    font-weight: bold;
+}

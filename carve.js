@@ -207,7 +207,7 @@ cv.render = function() {
 
   if (data_array.length)  drawData();
 
-  // if (_.isObject(split_data)) drawSplits();
+  if (_.isObject(split_data)) drawSplits();
 
   drawSplitLabel();
 
@@ -366,19 +366,19 @@ function updateAxisLabels() {
 function drawScatterplot(data_points) {
 
 data_points
-      .attr('d',symbolFunction(0).size(symbolSize)())
-  .transition()
-    .duration(update_duration)
-    .attr('transform', function(point) { 
-        return 'translate(' + scales.x(point[__.axes.attr.x]) + ',' +
-        scales.y(point[ __.axes.attr.y ]) + ')';})
-    
+    .attr('d',symbolFunction(0).size(symbolSize)())
     .style('fill-opacity', function(point) {
         return _.isUndefined(point.splits_on_x) ? 
           0.8 : caseSplitsOpacityscale(point.splits_on_x);
     })
     .style('stroke-width',"0px")     
-    .call(colorDataPoint);
+    .call(colorDataPoint)
+  .transition()
+    .duration(update_duration)
+    .attr('transform', function(point) { 
+        return 'translate(' + scales.x(point[__.axes.attr.x]) + ',' +
+        scales.y(point[ __.axes.attr.y ]) + ')';});
+
 
  var data_text = data_surface.select('.data_labels')
                     .selectAll('.data_totals')
@@ -432,7 +432,8 @@ function drawMultipleBarchart(data_points) {
 
       var height_axis = 'y',
         extent = scales[height_axis].range(),
-          band = ((scales[height_axis].rangeExtent()[1] - scales[height_axis].rangeExtent()[0]) / extent.length);
+          band = ((scales[height_axis].rangeExtent()[1] - scales[height_axis].rangeExtent()[0]) / extent.length),
+          halfBand = band/2;
 
       var width_axis = 'x',
         width_extent = scales[width_axis].range(),
@@ -454,40 +455,50 @@ function drawMultipleBarchart(data_points) {
       } 
 
       data_points
-                .transition()
-                  .duration(update_duration)
-                  .style('fill-opacity', 0.8)
-                  .attr('d', 'M 0 0 L '+ halfBarWidth +' 0 L ' + 
-                          halfBarWidth +' -' + barHeight + ' L -'+halfBarWidth +' -' + 
-                          barHeight + ' L -'+halfBarWidth+' 0 L 0 0' )
-                  .attr('transform', 
-                    function(point, i) { 
-                        return 'translate(' + 
-                              (scales.x(point[__.axes.attr.x]) + category_offset(String(point[__.colorBy.label])) ) +
-                                ',' +
-                              (scales.y(point[__.axes.attr.y] ) + band/2 - (e[i]*barHeight)) + ')';
-                  })
-                  .call(colorDataPoint);
+          .style('fill-opacity', 0.8)
+          .call(colorDataPoint)
+        .transition()
+          .duration(update_duration)
+          .attr('d', 'M 0 0 L '+ halfBarWidth +' 0 L ' + 
+                  halfBarWidth +' -' + barHeight + ' L -'+halfBarWidth +' -' + 
+                  barHeight + ' L -'+halfBarWidth+' 0 L 0 0' )
+          .attr('transform', 
+            function(point, i) { 
+                return 'translate(' + 
+                      (scales.x(point[__.axes.attr.x]) + category_offset(String(point[__.colorBy.label])) ) +
+                        ',' +
+                      (scales.y(point[__.axes.attr.y] ) + halfBand - (e[i]*barHeight)) + ')';
+          });
 
       function vertical_offset( point ) { return ( point[3] ) * barHeight; } 
-      function text_color( point ) { return addOffset( point ) ? '#ccc' : null; }
-      function addOffset( point ) { return ( vertical_offset(point) > band/2); }
+      function text_fill( point ) { return addOffset( point ) ? '#fff' : '#000'; }
+      function text_stroke( point ) { return addOffset( point ) ? '#000' : 'none'; }
+      function addOffset( point ) { return false;}//( vertical_offset(point) > halfBand); }
       
       function text_styling( selector, point ) {
               selector
-                .style('stroke', null )
-                .style('fill', text_color )
+                // .style('stroke', text_stroke )
+                // .style('stroke-width', '1' )
+                .style('fill', text_fill )
                 .style('visibility', function(point) { return +point[3] <= 0 ? 'hidden' : null; } )
                 .attr('transform', function(point) { return 'translate(' + 
                     (scales.x(point[0]) + category_offset( point[2] )) + 
                       ',' +
-                    (scales.y(point[1]) + band/2 - vertical_offset(point) + 
+                    (scales.y(point[1]) + halfBand - vertical_offset(point) + 
                       (addOffset(point) * 20) ) + ')'; } );
       }
 
+      var groups = _.groupBy(f, function(p) {return p[0]+ '_' + p[1];}),
+      top_3s = _.map(groups, function(group) { 
+        return _.chain(group).sortBy(function(g) { 
+          return g[3];
+        }).last(3).value();
+      }),
+      all_labels = _.flatten(top_3s, true);
+
       var data_text = data_surface.select('.data_labels')
                   .selectAll('.data_totals')
-                  .data(f, String );
+                  .data(all_labels , String );
                   
       data_text.enter()
                 .append("text")
@@ -531,12 +542,12 @@ function drawMultipleKDE(data_points) {
       data[d][e] = sampleEstimates(kde[d][e],num_domain); 
     }); 
   });
-    maxKDEValues = d3.values(data).map( function(d) { 
-          return d3.values(d).map( function(e) { 
-            return d3.max(e, function(f) { return f[1];})[1];
-          })[0];
+    maxKDEValues = d3.values(data).map( function(d) { //for each categorical value
+          return d3.max(d3.values(d).map( function(e) {      // for each colorBy value
+            return d3.max(e, function(f) { return f[1];});  //find the highest Density value for each kernel
+          }));                                              // find the highest density value in each categorical value
     });
-    maxKDEValue = d3.max(maxKDEValues);
+    maxKDEValue = d3.max(maxKDEValues);  //over all categorical values, what is the highest?
     cat_scale = d3.scale.linear().domain([0,maxKDEValue]).range([-1*cat_band/2,cat_band/2-10]);
     if ( cat_axis === 'y' ) cat_scale.range([cat_band/2,-1*cat_band/2+10]);
   }
@@ -583,8 +594,7 @@ function drawMultipleKDE(data_points) {
       .attr("class","kde_area")
       .style("stroke","none");
 
-  kde_ensemble.transition()
-      .duration(update_duration)
+  kde_ensemble
       .call(colorKDEArea);
 
   kde_plot.transition().select('.kde_line')
