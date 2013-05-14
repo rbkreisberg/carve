@@ -626,7 +626,7 @@ function colorDataPoint(selector) {
     })
     .style('fill-opacity', function(point) { return __.highlight.length ? 
       ( __.highlight === String(point[__.colorBy.label]) ? 
-        0.8 : 0.1 ) 
+        0.8 : 0.0 ) 
         : 0.5;})
     .style('stroke', null);
   return selector;
@@ -635,7 +635,7 @@ function colorDataPoint(selector) {
 function colorKDEArea(selector) {
   selector
       .style('fill-opacity', function(obj) { 
-        return __.highlight.length ? ( __.highlight === obj.key ? 0.8 : 0.1 ) : 0.3;
+        return __.highlight.length ? ( __.highlight === obj.key ? 0.8 : 0.0 ) : 0.3;
       });
 }
 
