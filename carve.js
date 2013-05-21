@@ -132,22 +132,21 @@ var __ = {
 
     //draw chart
     cv.svg = selection
-                   .append('svg')
-                    .attr('class','cv')
-                   .append('svg')
-                    .attr('viewBox','0 0 ' + __.width + ' ' + __.height)
-                    .attr('preserveAspectRatio','xMinYMin meet');
-                    // .attr('height',__.height)
-                    // .attr('width',__.width );
+                    .append('div')
+                      .attr('class','cv_wrapper')
+                    .append('svg')
+                      .attr('class','cv')
+                      .attr('viewBox','0 0 ' + __.width + ' ' + __.height)
+                      .attr('preserveAspectRatio','xMinYMin meet');
 
     cv.svg.append("defs").append("svg:clipPath")
                     .attr("id", "plot_clip")
                     .append("svg:rect")
                     .attr("id", "clip-rect")
-                    .attr("x", "0")
-                    .attr("y", "0")
-                    .attr("width", plotWidth())
-                    .attr("height", plotHeight());
+                    .attr("x", "10")
+                    .attr("y", "10")
+                    .attr("width", plotWidth()-10)
+                    .attr("height", plotHeight() - 20);
 
     var plot_offset = cv.svg.append('g')
                         .attr('transform','translate('+__.margin.left+','+ __.margin.top+')');
