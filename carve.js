@@ -54,16 +54,24 @@ var __ = {
     axes : {
         labels : {
              "x" : "X Axis",
-              "y" : "Y Axis"
+             "y" : "Y Axis"
         },
         attr : {
             "x" : "x",
             "y" : "y"
+        },
+        insistCategoricalValues : {
+          "x" : [],
+          "y" : []
         }
     },
     highlight : '',
     colorFn : function(d) { return pointColors[0] },
-    colorBy : {label:"", list:[], colors: pointColors },
+    colorBy : {
+                label:"",
+                list:[],
+                colors: pointColors
+              },
     clear : true,
     partition : {}
  };
@@ -1143,13 +1151,17 @@ function setDataScales( xVals, yVals ) {  //unique values for each dimension
   var splits_on_x = _.pluck( data_array, 'splits_on_x' );
 
   caseSplitsOpacityscale = d3.scale.linear().domain(d3.extent(splits_on_x)).range([0.2,0.9]);
+  var insistCategoricalValues = {};
+  insistCategoricalValues.x = __.axes.insistCategoricalValues && __.axes.insistCategoricalValues.x ? __.axes.insistCategoricalValues.x : [];
+  insistCategoricalValues.y = __.axes.insistCategoricalValues && __.axes.insistCategoricalValues.y ? __.axes.insistCategoricalValues.y : [];
+
   var range = { 
               "x" : [ 10, plotWidth()-10 ],
               "y" : [ plotHeight()-10, 10 ]
               },
       vals = { 
-              "x" : xVals.sort(),
-              "y" : yVals.sort().reverse()
+              "x" : _.union(xVals,insistCategoricalValues.x).sort(),
+              "y" : _.union(yVals,insistCategoricalValues.y).sort().reverse()
             };
 
   ['x','y'].forEach( function( axis, index ) {
@@ -1257,11 +1269,10 @@ function sampleEstimates(kde, range) {
     if ( _.isUndefined(range) ) range = d3.extent(data);
     if (data === undefined) { return [];}
    
-    //if (variance > dataSize){ variance = dataSize;}
     var stepSize = kde.bandwidth()(data);
     //Filters the data down to relevant points
     //20 points over two variances
-    newPoints = d3.range(range[0],range[1],stepSize);
+    newPoints = d3.range(range[0] - (2 * stepSize),range[1] + (2 * stepSize),stepSize);
     return kde(newPoints);
   }
 
