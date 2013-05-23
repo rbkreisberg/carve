@@ -77,7 +77,7 @@ var __ = {
             "x" : {},
             "y" : {}
         },
-    axisAttribute : {
+    axisKey : {
             "x" : "x",
             "y" : "y"
         },
@@ -412,7 +412,7 @@ function mapCategoricalValues(value, axis) {
 
 function copyAxisValues(new_values) {
   if ("labels" in new_values) __.axisLabel =  new_values.labels;
-  if ("attr" in new_values) __.axisAttribute =  new_values.attr;
+  if ("attr" in new_values) __.axisKey =  new_values.attr;
   if ("valueDictionary" in new_values) __.axisValueDictionary =  new_values.valueDictionary;
   if ("insistCategoricalValues" in new_values) __.axisInsistCategoricalValues =  new_values.insistCategoricalValues;
 }
@@ -441,8 +441,8 @@ data_points
   .transition()
     .duration(update_duration)
     .attr('transform', function(point) { 
-        return 'translate(' + scales.x(point[__.axisAttribute.x]) + ',' +
-        scales.y(point[ __.axisAttribute.y ]) + ')';});
+        return 'translate(' + scales.x(point[__.axisKey.x]) + ',' +
+        scales.y(point[ __.axisKey.y ]) + ')';});
 
 
  var data_text = data_surface.select('.data_labels')
@@ -482,7 +482,7 @@ function drawMultipleBarchart(data_points) {
       var f = new Array(stacks);
 
       data_array.forEach( function (point, index) {
-             e[ index ] = d[ point[ __.axisAttribute.x ] ] [  point[ __.axisAttribute.y ] ] [ String(point[__.colorBy.label]) ]++;
+             e[ index ] = d[ point[ __.axisKey.x ] ] [  point[ __.axisKey.y ] ] [ String(point[__.colorBy.label]) ]++;
       });
 
       var i = stacks -1;
@@ -530,9 +530,9 @@ function drawMultipleBarchart(data_points) {
           .attr('transform', 
             function(point, i) { 
                 return 'translate(' + 
-                      (scales.x(point[__.axisAttribute.x]) + category_offset(String(point[__.colorBy.label])) ) +
+                      (scales.x(point[__.axisKey.x]) + category_offset(String(point[__.colorBy.label])) ) +
                         ',' +
-                      (scales.y(point[__.axisAttribute.y] ) + halfBand - (e[i]*barHeight)) + ')';
+                      (scales.y(point[__.axisKey.y] ) + halfBand - (e[i]*barHeight)) + ')';
           });
 
       function vertical_offset( point ) { return ( point[3] ) * barHeight; } 
@@ -1009,25 +1009,25 @@ function drawPartitionSpans() {
                     .on('click',function(dims){
                       var split_obj = {};
                       if ( !_.isNull(split_data['x'].span) ) {
-                        split_obj[__.axisAttribute.x] = {};
+                        split_obj[__.axisKey.x] = {};
                         if ( __.dataType.x === 'n' ) {
                           var x = {low : scales.x.invert(dims[0]), high: scales.x.invert(dims[2] + dims[0])};
-                          split_obj[__.axisAttribute.x] = _.clone(x);
+                          split_obj[__.axisKey.x] = _.clone(x);
                         } else {
                           var xExtent = scales.x.range(),
                               xSelectedVals = _.filter(xExtent, function(val) { return val >= dims[0] && val <= dims[0] + dims[2]; } );
-                          split_obj[__.axisAttribute.x] = { values: xSelectedVals.map( scales.x.invert) };
+                          split_obj[__.axisKey.x] = { values: xSelectedVals.map( scales.x.invert) };
                         }
                       }
                       if (!_.isNull(split_data['y'].span)) {
-                        split_obj[__.axisAttribute.y] = {};
+                        split_obj[__.axisKey.y] = {};
                         if ( __.dataType.y === 'n' ) {
                           var y = {low : scales.y.invert(dims[1] + dims[3]), high: scales.y.invert(dims[1])};
-                          split_obj[__.axisAttribute.y] = _.clone(y);
+                          split_obj[__.axisKey.y] = _.clone(y);
                         } else {
                           var yExtent = scales.y.range(),
                               ySelectedVals = yExtent.filter( function(val) { return val >= dims[1] && val <= dims[1] + dims[3];} );
-                          split_obj[__.axisAttribute.y] = { values : ySelectedVals.map( scales.y.invert) };
+                          split_obj[__.axisKey.y] = { values : ySelectedVals.map( scales.y.invert) };
                         }
                       }
                       events.partitioncomplete( split_obj );
@@ -1158,9 +1158,9 @@ function parseData() {
   }
 
   var element_properties = d3.keys(__.data[0]);
-  if ( _.contains(element_properties,  __.axisAttribute.x ) && _.contains(element_properties,  __.axisAttribute.y ) ) {
-    var xVals = _.uniq(_.pluck(__.data, __.axisAttribute.x ) ),
-        yVals = _.uniq(_.pluck(__.data,  __.axisAttribute.y ) );
+  if ( _.contains(element_properties,  __.axisKey.x ) && _.contains(element_properties,  __.axisKey.y ) ) {
+    var xVals = _.uniq(_.pluck(__.data, __.axisKey.x ) ),
+        yVals = _.uniq(_.pluck(__.data,  __.axisKey.y ) );
         
             __.dataType.x =  isCategorical( xVals ) ? 'c' : 'n';
             __.dataType.y =  isCategorical( yVals ) ? 'c' : 'n';
@@ -1182,7 +1182,7 @@ function setPartitions(obj ) {
   clearAllSplitSelections();
   var new_partition_obj = obj.value;
   new_partition_obj.forEach( function(obj, key){
-    var axis = __.axisAttribute.x === key ? 'x' : (__.axisAttribute.y === key ? 'y' : '');
+    var axis = __.axisKey.x === key ? 'x' : (__.axisKey.y === key ? 'y' : '');
     if (_.isEmpty(axis) ) return;
     if ( _.isArray(obj.values) ) obj.values.forEach( function (val) { selectCategoricalSplitValue(val, axis);});
     else if (_.isFinite(obj.high) && _.isFinite(obj.low) ) {
@@ -1255,9 +1255,9 @@ function createKDEdata( cat_axis, num_axis ) {
     
   scales[cat_axis].domain().forEach( function(category) {
     obj = {};
-    obj[__.axisAttribute[cat_axis]] = category;
+    obj[__.axisKey[cat_axis]] = category;
     kde_points = _.where(__.data, obj );
-    points = _.pluck( kde_points, __.axisAttribute[num_axis]);
+    points = _.pluck( kde_points, __.axisKey[num_axis]);
     
     //initialize d hash to count totals for num_axis value for each color category
     var d = {};
@@ -1267,7 +1267,7 @@ function createKDEdata( cat_axis, num_axis ) {
         obj = {}; 
         obj[__.colorBy.label] = c;
         class_points = _.where(kde_points,obj);
-        class_num_points[c] = _.pluck( class_points, __.axisAttribute[num_axis]);
+        class_num_points[c] = _.pluck( class_points, __.axisKey[num_axis]);
       });
 
     
