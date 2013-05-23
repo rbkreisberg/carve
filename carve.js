@@ -56,6 +56,10 @@ var __ = {
              "x" : "X Axis",
              "y" : "Y Axis"
         },
+        valueDictionary : {
+            "x" : {},
+            "y" : {}
+        },
         attr : {
             "x" : "x",
             "y" : "y"
@@ -65,7 +69,7 @@ var __ = {
           "y" : []
         }
     },
-    axisLabel : { 
+    axisLabel : {
              "x" : "X Axis",
              "y" : "Y Axis"
            },
@@ -112,7 +116,10 @@ var __ = {
       scales = { x: d3.scale.ordinal(),
                 y : {}
               },
-     kde = { x: null,
+      axisScales = { x: scales.x.copy(),
+                  y: {}
+                },
+      kde = { x: null,
                 y : null
               },
       min_uniq_points = 0,
@@ -226,10 +233,10 @@ var __ = {
 
 cv.render = function() {
 
-  clearAllSplitSelections(); 
-  clearAllSplitPointers(); 
-  parseData(); 
-  
+  clearAllSplitSelections();
+  clearAllSplitPointers();
+  parseData();
+
   if (axisFn["y"].scale() !== undefined) drawAxes();
 
   if (data_array.length)  drawData();
@@ -314,7 +321,7 @@ function drawAxes() {
       .attr('class','axis_label')
       .attr('xlink:href','#' + axis + '_axis_alignment')
       .attr('startOffset','50%')
-      .text(__.axes.labels[axis]);
+      .text(__.axisLabel[axis]);
 
   });
 
@@ -377,17 +384,37 @@ function adjustTicks(axis) {
 function updateAxes() {
   ['y','x'].forEach( function(axis) {
     var axisEl = bottom_surface.select('.' + axis + '.axis');
-    axisEl.select('.ticks').transition().duration(update_duration).call(axisFn[axis].scale(scales[axis]));
+    axisScales[axis] = scales[axis].copy();
+    if (__.dataType[axis] === 'c') {
+      axisScales[axis].domain(scales[axis].domain().map(function (val) { return mapCategoricalValues(val, axis);}));
+    }
+    axisEl.select('.ticks').transition().duration(update_duration).call(axisFn[axis].scale(axisScales[axis]));
     adjustTicks(axis);
   });
 }
 
-function updateAxisLabels() {
+function mapCategoricalValues(value, axis) {
+  if (!(axis in __.axisValueDictionary)) return value;
+    if (value in __.axisValueDictionary[axis]) { return __.axisValueDictionary[axis][value]; }
+  return value;
+}
+
+function copyAxisValues(new_values) {
+  if ("labels" in new_values) __.axisLabel =  new_values.labels;
+  if ("attr" in new_values) __.axisAttribute =  new_values.attr;
+  if ("valueDictionary" in new_values) __.axisValueDictionary =  new_values.valueDictionary;
+  if ("insistCategoricalValues" in new_values) __.axisInsistCategoricalValues =  new_values.insistCategoricalValues;
+}
+
+function updateAxisLabels(obj) {
+
+     copyAxisValues(obj.value);
+
      var y_axis = bottom_surface.select('.y.axis'), 
       x_axis = bottom_surface.select('.x.axis');
 
-      y_axis.select('.axis_label').text(__.axes.labels.y);
-      x_axis.select('.axis_label').text(__.axes.labels.x);
+      y_axis.select('.axis_label').text(__.axisLabel.y);
+      x_axis.select('.axis_label').text(__.axisLabel.x);
   }
 
 function drawScatterplot(data_points) {
