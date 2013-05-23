@@ -1,26 +1,26 @@
-.data_point {
+.cv_wrapper .data_point {
     stroke-width: 0px;
     shape-rendering: crispEdges;
 }
 
-.axis path, .axis line {
+.cv_wrapper .axis path,.cv_wrapper .axis line {
     fill: none;
     stroke: #000;
     stroke-width: 2.0px;
     shape-rendering: crispEdges;
 }
 
-.kde_line {
+.cv_wrapper .kde_line {
     shape-rendering: none;
     stroke-width: 1.5px;
     visibility: hidden;
 }
 
-.y.axis path, .y.axis line{
+.cv_wrapper .y.axis path, .cv_wrapper .y.axis line{
     stroke:#aaa;
 }
 
-.x.axis path, .x.axis line {
+.cv_wrapper .x.axis path, .cv_wrapper .x.axis line {
     stroke:none;
 }
 
@@ -28,13 +28,13 @@
     font-size:16px;
 }
 
-.data_totals {
+.cv_wrapper .data_totals {
     font-size: 20px;
     font-weight: 400;
     shape-rendering: crispEdges;
 }
 
-.data_labels {
+.cv_wrapper .data_labels {
     font-size: 18px;
     font-weight: bold;
 }
