@@ -151,7 +151,8 @@ var __ = {
     .on("colorBy", setClassScales )
     .on("splits", parseSplits )
     .on("partition", setPartitions )
-    .on("axes", updateAxisLabels );
+    .on("axisLabel", updateAxisLabels )
+    .on("axes",  function(obj) { copyAxisValues(obj.value); updateAxisLabels(); } );
    
   var cv = function(selection) {
     selection = cv.selection = d3.select(selection);
@@ -417,9 +418,7 @@ function copyAxisValues(new_values) {
   if ("insistCategoricalValues" in new_values) __.axisInsistCategoricalValues =  new_values.insistCategoricalValues;
 }
 
-function updateAxisLabels(obj) {
-
-     copyAxisValues(obj.value);
+function updateAxisLabels() {
 
      var y_axis = bottom_surface.select('.y.axis'), 
       x_axis = bottom_surface.select('.x.axis');
