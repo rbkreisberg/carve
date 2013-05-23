@@ -170,7 +170,9 @@ var __ = {
                       .attr('viewBox','0 0 ' + __.width + ' ' + __.height)
                       .attr('preserveAspectRatio','xMinYMin meet');
 
-    cv.svg.append("defs").append("svg:clipPath")
+    var defs = cv.svg.append("defs");
+
+                  defs.append("svg:clipPath")
                     .attr("id", "plot_clip")
                     .append("svg:rect")
                     .attr("id", "clip-rect")
@@ -178,8 +180,17 @@ var __ = {
                     .attr("y", "10")
                     .attr("width", plotWidth()-10)
                     .attr("height", plotHeight() - 20);
+            defs.append("svg:clipPath")
+                    .attr("id", "viewbox_clip")
+                    .append("svg:rect")
+                    .attr("x", "0")
+                    .attr("y", "0")
+                    .attr("width", outerWidth())
+                    .attr("height", outerHeight());
 
-    var plot_offset = cv.svg.append('g')
+    var plot_offset = cv.svg.append('svg')
+                        .attr('clip','url(#viewbox_clip)')
+                        .attr('overflow','hidden')
                         .attr('transform','translate('+__.margin.left+','+ __.margin.top+')');
                        
     bottom_surface = plot_offset.append('g')
