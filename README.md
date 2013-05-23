@@ -11,15 +11,15 @@ Carve accepts numerical and categorical data.  Based on the types of data, it di
 
 *Numerical vs. Numerical Scatterplot*
 
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_scatterplot.png)
 
+*Numerical vs Categorical KDE plot*
 
-*Numerical vs Categorical*
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_kde.png)
 
-A one dimensional Kernel Density Estimate (KDE) is displayed for each categorical value.
+*Categorical vs. Categorical Multiple Bar Chart*
 
-*Categorical vs. Categorical*
-
-A table of bar charts displays the relative distribution of the pairs of categorical values.
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_bar.png)
 
 # What Else?
 
