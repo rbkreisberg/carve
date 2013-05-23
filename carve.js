@@ -65,6 +65,22 @@ var __ = {
           "y" : []
         }
     },
+    axisLabel : { 
+             "x" : "X Axis",
+             "y" : "Y Axis"
+           },
+    axisValueDictionary : {
+            "x" : {},
+            "y" : {}
+        },
+    axisAttribute : {
+            "x" : "x",
+            "y" : "y"
+        },
+    axisInsistCategoricalValues : {
+          "x" : [],
+          "y" : []
+        },
     highlight : '',
     colorFn : function(d) { return pointColors[0] },
     colorBy : {
@@ -123,8 +139,8 @@ var __ = {
 
   // side effects for setters
   var side_effects = d3.dispatch.apply(this,d3.keys(__))
-    .on("radius", function(new_value) { symbolSize = Math.pow(__.radius,2);})
-    .on("data", function(new_value) { clearAllSplitSelections(); clearAllSplitPointers(); parseData(); console.log('splitscope: data loaded');})
+    .on("radius", function(obj) { symbolSize = Math.pow(__.radius,2);})
+    .on("data", function(obj) { console.log('carve: data loaded');})
     .on("colorBy", setClassScales )
     .on("splits", parseSplits )
     .on("partition", setPartitions )
@@ -210,6 +226,10 @@ var __ = {
 
 cv.render = function() {
 
+  clearAllSplitSelections(); 
+  clearAllSplitPointers(); 
+  parseData(); 
+  
   if (axisFn["y"].scale() !== undefined) drawAxes();
 
   if (data_array.length)  drawData();
@@ -383,8 +403,8 @@ data_points
   .transition()
     .duration(update_duration)
     .attr('transform', function(point) { 
-        return 'translate(' + scales.x(point[__.axes.attr.x]) + ',' +
-        scales.y(point[ __.axes.attr.y ]) + ')';});
+        return 'translate(' + scales.x(point[__.axisAttribute.x]) + ',' +
+        scales.y(point[ __.axisAttribute.y ]) + ')';});
 
 
  var data_text = data_surface.select('.data_labels')
@@ -424,7 +444,7 @@ function drawMultipleBarchart(data_points) {
       var f = new Array(stacks);
 
       data_array.forEach( function (point, index) {
-             e[ index ] = d[ point[ __.axes.attr.x ] ] [  point[ __.axes.attr.y ] ] [ String(point[__.colorBy.label]) ]++;
+             e[ index ] = d[ point[ __.axisAttribute.x ] ] [  point[ __.axisAttribute.y ] ] [ String(point[__.colorBy.label]) ]++;
       });
 
       var i = stacks -1;
@@ -472,9 +492,9 @@ function drawMultipleBarchart(data_points) {
           .attr('transform', 
             function(point, i) { 
                 return 'translate(' + 
-                      (scales.x(point[__.axes.attr.x]) + category_offset(String(point[__.colorBy.label])) ) +
+                      (scales.x(point[__.axisAttribute.x]) + category_offset(String(point[__.colorBy.label])) ) +
                         ',' +
-                      (scales.y(point[__.axes.attr.y] ) + halfBand - (e[i]*barHeight)) + ')';
+                      (scales.y(point[__.axisAttribute.y] ) + halfBand - (e[i]*barHeight)) + ')';
           });
 
       function vertical_offset( point ) { return ( point[3] ) * barHeight; } 
@@ -951,25 +971,25 @@ function drawPartitionSpans() {
                     .on('click',function(dims){
                       var split_obj = {};
                       if ( !_.isNull(split_data['x'].span) ) {
-                        split_obj[__.axes.attr.x] = {};
+                        split_obj[__.axisAttribute.x] = {};
                         if ( __.dataType.x === 'n' ) {
                           var x = {low : scales.x.invert(dims[0]), high: scales.x.invert(dims[2] + dims[0])};
-                          split_obj[__.axes.attr.x] = _.clone(x);
+                          split_obj[__.axisAttribute.x] = _.clone(x);
                         } else {
                           var xExtent = scales.x.range(),
                               xSelectedVals = _.filter(xExtent, function(val) { return val >= dims[0] && val <= dims[0] + dims[2]; } );
-                          split_obj[__.axes.attr.x] = { values: xSelectedVals.map( scales.x.invert) };
+                          split_obj[__.axisAttribute.x] = { values: xSelectedVals.map( scales.x.invert) };
                         }
                       }
                       if (!_.isNull(split_data['y'].span)) {
-                        split_obj[__.axes.attr.y] = {};
+                        split_obj[__.axisAttribute.y] = {};
                         if ( __.dataType.y === 'n' ) {
                           var y = {low : scales.y.invert(dims[1] + dims[3]), high: scales.y.invert(dims[1])};
-                          split_obj[__.axes.attr.y] = _.clone(y);
+                          split_obj[__.axisAttribute.y] = _.clone(y);
                         } else {
                           var yExtent = scales.y.range(),
                               ySelectedVals = yExtent.filter( function(val) { return val >= dims[1] && val <= dims[1] + dims[3];} );
-                          split_obj[__.axes.attr.y] = { values : ySelectedVals.map( scales.y.invert) };
+                          split_obj[__.axisAttribute.y] = { values : ySelectedVals.map( scales.y.invert) };
                         }
                       }
                       events.partitioncomplete( split_obj );
@@ -1100,9 +1120,9 @@ function parseData() {
   }
 
   var element_properties = d3.keys(__.data[0]);
-  if ( _.contains(element_properties,  __.axes.attr.x ) && _.contains(element_properties,  __.axes.attr.y ) ) {
-    var xVals = _.uniq(_.pluck(__.data, __.axes.attr.x ) ),
-        yVals = _.uniq(_.pluck(__.data,  __.axes.attr.y ) );
+  if ( _.contains(element_properties,  __.axisAttribute.x ) && _.contains(element_properties,  __.axisAttribute.y ) ) {
+    var xVals = _.uniq(_.pluck(__.data, __.axisAttribute.x ) ),
+        yVals = _.uniq(_.pluck(__.data,  __.axisAttribute.y ) );
         
             __.dataType.x =  isCategorical( xVals ) ? 'c' : 'n';
             __.dataType.y =  isCategorical( yVals ) ? 'c' : 'n';
@@ -1124,7 +1144,7 @@ function setPartitions(obj ) {
   clearAllSplitSelections();
   var new_partition_obj = obj.value;
   new_partition_obj.forEach( function(obj, key){
-    var axis = __.axes.attr.x === key ? 'x' : (__.axes.attr.y === key ? 'y' : '');
+    var axis = __.axisAttribute.x === key ? 'x' : (__.axisAttribute.y === key ? 'y' : '');
     if (_.isEmpty(axis) ) return;
     if ( _.isArray(obj.values) ) obj.values.forEach( function (val) { selectCategoricalSplitValue(val, axis);});
     else if (_.isFinite(obj.high) && _.isFinite(obj.low) ) {
@@ -1151,17 +1171,14 @@ function setDataScales( xVals, yVals ) {  //unique values for each dimension
   var splits_on_x = _.pluck( data_array, 'splits_on_x' );
 
   caseSplitsOpacityscale = d3.scale.linear().domain(d3.extent(splits_on_x)).range([0.2,0.9]);
-  var insistCategoricalValues = {};
-  insistCategoricalValues.x = __.axes.insistCategoricalValues && __.axes.insistCategoricalValues.x ? __.axes.insistCategoricalValues.x : [];
-  insistCategoricalValues.y = __.axes.insistCategoricalValues && __.axes.insistCategoricalValues.y ? __.axes.insistCategoricalValues.y : [];
 
   var range = { 
               "x" : [ 10, plotWidth()-10 ],
               "y" : [ plotHeight()-10, 10 ]
               },
       vals = { 
-              "x" : _.union(xVals,insistCategoricalValues.x).sort(),
-              "y" : _.union(yVals,insistCategoricalValues.y).sort().reverse()
+              "x" : _.union(xVals,__.axisInsistCategoricalValues.x).sort(),
+              "y" : _.union(yVals,__.axisInsistCategoricalValues.y).sort().reverse()
             };
 
   ['x','y'].forEach( function( axis, index ) {
@@ -1200,9 +1217,9 @@ function createKDEdata( cat_axis, num_axis ) {
     
   scales[cat_axis].domain().forEach( function(category) {
     obj = {};
-    obj[__.axes.attr[cat_axis]] = category;
+    obj[__.axisAttribute[cat_axis]] = category;
     kde_points = _.where(__.data, obj );
-    points = _.pluck( kde_points, __.axes.attr[num_axis]);
+    points = _.pluck( kde_points, __.axisAttribute[num_axis]);
     
     //initialize d hash to count totals for num_axis value for each color category
     var d = {};
@@ -1212,7 +1229,7 @@ function createKDEdata( cat_axis, num_axis ) {
         obj = {}; 
         obj[__.colorBy.label] = c;
         class_points = _.where(kde_points,obj);
-        class_num_points[c] = _.pluck( class_points, __.axes.attr[num_axis]);
+        class_num_points[c] = _.pluck( class_points, __.axisAttribute[num_axis]);
       });
 
     
@@ -1337,7 +1354,7 @@ function parseSplits() {
     return cv;
   }
 
-  cv.version = "0.0.1";
+  cv.version = "0.0.2";
 
   return cv;
 
