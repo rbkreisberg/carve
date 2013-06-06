@@ -9,9 +9,12 @@ https://github.com/syntagmatic/parallel-coordinates
 Copyright (c) 2012, Kai Chang
 */
 
-var carve = (function() {
+(function() {
+  if (typeof module === "undefined") self.carve = carve;
+  else module.exports = carve;
+  carve.version = "0.0.2";
 
-return function(config) {
+function carve(config) {
 
 var config = config || {};
 
@@ -1390,8 +1393,6 @@ function parseSplits() {
 
     return cv;
   }
-
-  cv.version = "0.0.2";
 
   return cv;
 
