@@ -1297,12 +1297,18 @@ function createKDEdata( cat_axis, num_axis ) {
 
 }
 
-function setClassScales() {
-
-  //if the class hasn't changed, don't modify it.
+function setClassScales(obj) {
+  
   colorCategories = __.colorBy.list.length ?  __.colorBy.list.map(String) : [undefined];
 
   if ( _.isArray(__.colorBy.colors) && __.colorBy.colors.length ) { pointColors = __.colorBy.colors; }
+ 
+  //if the class hasn't changed, don't modify it. 
+  if ( obj && 
+    obj.value.label === obj.previous.label && 
+    _.difference(obj.value.list,obj.previous.list).length == 0 ) {
+    return;
+  }
 
   var numberOfCategories = colorCategories.length,
       colorArray = _.first(pointColors, numberOfCategories) || pointColors[0];
