@@ -1,1 +1,3 @@
 components
+bower_components
+*.log
