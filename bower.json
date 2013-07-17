@@ -1,11 +1,6 @@
 {
   "name": "carve",
-  "version": "0.0.1",
-  "dependencies": {
-    "d3": "~3.0.8",
-    "science": "git://github.com/jasondavies/science.js.git",
-    "underscore": "~1.4.4"
-  },
+  "version": "0.0.2",
   "main": "carve.js",
   "ignore": [
     "**/.*",

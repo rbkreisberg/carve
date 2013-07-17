@@ -37,6 +37,8 @@ Check out a demonstration of carve: [Splitiscope](https://github.com/rbkreisberg
 
 Carve can be used as a global variable called 'carve' or as an AMD module using requirejs.  You can use multiple carves in the same page.
 
+Carve depends on d3, underscore, and science.js.  Import these scripts prior to initializing a carve plot.
+
 ```javascript
 var data = [
 

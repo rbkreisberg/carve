@@ -108,14 +108,7 @@ var __ = {
       plotHeight = function() { return outerHeight() - padding.top - padding.bottom },
       displayWidth = function() { return plotWidth() - 20;},
       displayHeight = function() { return plotHeight() - 20;},
-      flags = {
-        brushable: false,
-        reorderable: false,
-        axes: false,
-        interactive: false,
-        shadows: false,
-        debug: false
-      },
+
       scales = { x: d3.scale.ordinal(),
                 y : {}
               },
