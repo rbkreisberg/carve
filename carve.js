@@ -217,8 +217,7 @@ var __ = {
 
   // expose the state of the chart
   cv.state = __;
-  cv.flags = flags;
-
+  
   // create getter/setters
   getset(cv, __, events);
 
@@ -1292,7 +1291,7 @@ function createKDEdata( cat_axis, num_axis ) {
 
 function setClassScales(obj) {
   
-  colorCategories = __.colorBy.list.length ?  __.colorBy.list.map(String) : [undefined];
+  colorCategories = __.colorBy.list && __.colorBy.list.length ?  __.colorBy.list.map(String) : [undefined];
 
   if ( _.isArray(__.colorBy.colors) && __.colorBy.colors.length ) { pointColors = __.colorBy.colors; }
  
