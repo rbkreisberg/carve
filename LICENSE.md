@@ -1,4 +1,4 @@
-Copyright (c) 2013, Institute for Systems Biology 
+Copyright (c) 2013, carve Authors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
