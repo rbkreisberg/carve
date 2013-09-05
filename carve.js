@@ -131,6 +131,7 @@ var __ = {
       symbolFunction = _.compose(symbol.type, symbolMap),
       splitStrokeColors = ['red','green','black'],
       colorCategories = [],
+      colorCategoryIsNumerical = false,
       strokeFunction = function(index) { return splitStrokeColors[index];},
       data_array = [],
       axisFn = {
@@ -507,9 +508,9 @@ function drawMultipleBarchart(data_points) {
 
       function category_offset (label) {
         if (label === "undefined") { label = undefined; }
-            position = colorCategories.indexOf( label ),
+            var position = colorCategories.indexOf( label ),
             midpoint = last_index / 2;
-        var offset = (position  - midpoint) * (barWidth + (barSpacing * last_index));
+            offset = (position  - midpoint) * (barWidth + (barSpacing * last_index));
         return Math.round(offset);
       } 
 
@@ -1259,7 +1260,7 @@ function createKDEdata( cat_axis, num_axis ) {
 
     colorCategories.forEach( function(c) { 
         obj = {}; 
-        obj[__.colorBy.label] = c;
+        obj[__.colorBy.label] = colorCategoryIsNumerical ? +c : c;
         class_points = _.where(kde_points,obj);
         class_num_points[c] = _.pluck( class_points, __.axisKey[num_axis]);
       });
@@ -1292,6 +1293,8 @@ function createKDEdata( cat_axis, num_axis ) {
 function setClassScales(obj) {
   
   colorCategories = __.colorBy.list && __.colorBy.list.length ?  __.colorBy.list.map(String) : [undefined];
+  if ( _.every(colorCategories, _.isFinite) ) { colorCategoryIsNumerical = true; }
+  else { colorCategoryIsNumerical = false; }
 
   if ( _.isArray(__.colorBy.colors) && __.colorBy.colors.length ) { pointColors = __.colorBy.colors; }
  
