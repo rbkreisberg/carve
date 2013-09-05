@@ -12,7 +12,7 @@ Copyright (c) 2012, Kai Chang
 (function() {
   if (typeof module === "undefined") self.carve = carve;
   else module.exports = carve;
-  carve.version = "0.0.2";
+  carve.version = "0.0.4";
 
 function carve(config) {
 
