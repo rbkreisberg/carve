@@ -60,7 +60,7 @@ return function() {
 
             Filter.totalSize = function() {
                 return all.value();
-            }
+            };
 
             Filter.columns = function() {
                 return Object.keys(filter);
