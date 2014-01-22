@@ -129,6 +129,7 @@ var __ = {
       symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]),
       symbolMap = d3.scale.ordinal().domain([0,5]).range(shapes),
       symbolFunction = _.compose(symbol.type, symbolMap),
+      splitsEnabled = false,
       splitStrokeColors = ['red','green','black'],
       colorCategories = [],
       strokeFunction = function(index) { return splitStrokeColors[index];},
@@ -248,7 +249,7 @@ cv.render = function() {
 
   if (data_array.length)  drawData();
 
-  if (_.isObject(split_data)) drawSplits();
+  if (_.isObject(split_data) && splitsEnabled ) drawSplits();
 
   drawSplitLabel();
 
@@ -260,6 +261,7 @@ cv.render = function() {
 function reRender() {
   updateAxes();
   drawData();
+  if (splitsEnabled === false) { return; }
   drawSplits();
   drawPartitionSpans();
 }
@@ -528,6 +530,9 @@ function drawMultipleBarchart(data_points) {
                         ',' +
                       (scales.y(point[__.axisKey.y] ) + halfBand - (e[i]*barHeight)) + ')';
           });
+      // .transition()
+      //     .style('fill-opacity', 0);
+
 
       function vertical_offset( point ) { return ( point[3] ) * barHeight; } 
       function text_fill( point ) { return addOffset( point ) ? '#fff' : '#000'; }
