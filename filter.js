@@ -117,6 +117,12 @@ return function() {
                 return _.pluck( group[label].top( Infinity ), 'key' );
             };
 
+            Filter.getNormalizedGroupEntries = function(label, sorted) {
+                var entries = Filter.getGroupEntries.apply(this, arguments);
+                if ( entries.length === 0 ) { return []; }
+                
+            };
+
             Filter.getRows = function( label, num ) {
                 if (arguments.length < 2) num = Infinity;
                 if (arguments.length < 1) label = Object.keys(filter)[0];
