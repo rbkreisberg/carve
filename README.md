@@ -68,6 +68,46 @@ var carve_vis = carve_obj("#plot");
         .data(data)
         .render();
 ```
+
+There are additional settings that can be defined. The unique "id" key in each data point (defaults to "id"). The mapping between color_by class values and RGB Hex colors ( colorBy( { colors: colorList } ) ). Specific axis ranges (axisDomain), value dictionaries (axisValueDictionary), additional categorical values not in the data (axisInsistCategoricalValues), enforce axis data types (dataType).  Enable the "carving" behavior (enableCarving).
+
+Additional settings using chained functions:
+```
+
+carve_vis
+     .id("id")
+     .colorBy({
+            label : "breed",
+            list : _.pluck(data, "breed"),
+             colors : [ 
+                    "#71C560",
+                    "#9768C4",
+                    "#98B8B8",
+                    "#4F473D",
+                    "#C1B14C",
+                    "#B55381",
+                    "#393939",
+                    "#787878"
+                ]
+        })
+        .axisLabel({ x : "Weight (lbs)", y : "Height (in)" })
+        .axisKey({ x : "weight", y : "height" })
+        .axisDomain({ x : [0,200], y : [0, 35 ] })
+        .enableCarving(true)
+        .data(data)
+        .render();
+```
+
+Highlight data that have the "color_by" attributes of a specified value.  Remove the highlight.
+```
+carve_vis
+    .highlight("saluki")
+    .render();
+
+carve_vis
+    .highlight(null)
+    .render();
+```
 <!-- 
     resources:
 https://dl.dropboxusercontent.com/s/z0hyis11d003z80/carve.js
