@@ -73,7 +73,7 @@ var __ = {
           "x" : [],
           "y" : []
         },
-    highlight : '',
+    highlight : null,
     colorFn : function(d) { return pointColors[0]; },
     colorBy : {
                 label:"",
@@ -647,14 +647,14 @@ function drawMultipleKDE(data_points) {
 
 }
 
-function colorDataPoint(selector) {  
+function colorDataPoint(selector) {
   selector
     .style('fill',function(point) {
           return  __.colorFn(String(point[__.colorBy.label]));
     })
-    .style('fill-opacity', function(point) { return __.highlight.length ? 
-      ( __.highlight === String(point[__.colorBy.label]) ? 0.8 : 0.0 ) 
-      : 0.5; 
+    .style('fill-opacity', function(point) { return __.highlight && __.highlight.length ?
+      ( __.highlight === String(point[__.colorBy.label]) ? 0.8 : 0.0 )
+      : 0.5;
       })
     .style('stroke', null);
   return selector;
@@ -663,7 +663,7 @@ function colorDataPoint(selector) {
 function colorKDEArea(selector) {
   selector
       .style('fill-opacity', function(obj) {
-        return __.highlight.length ? ( __.highlight === obj.key ? 0.8 : 0.0 ) : 0.3;
+        return __.highlight && __.highlight.length ? ( __.highlight === obj.key ? 0.8 : 0.0 ) : 0.3;
       });
 }
 
