@@ -24,7 +24,7 @@ Copyright (c) 2012, Kai Chang
    }
 }(this, function(_, d3) {
 
-  carve.version = "0.0.7";
+  carve.version = "0.0.8";
 
 function carve(configObj) {
 
