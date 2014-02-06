@@ -26,9 +26,9 @@ Copyright (c) 2012, Kai Chang
 
   carve.version = "0.0.7";
 
-function carve(config) {
+function carve(configObj) {
 
-var config = config || {};
+var config = configObj || {};
 
 // useful defaults
 var  pointColors = [
@@ -124,7 +124,7 @@ var __ = {
       domainScalingFactor = 1.04,
       caseSplitsOpacityscale,
       selected = {x: null, y: null},
-      padding = { top: 24, bottom: 4, left: 30, right: 24 },
+      padding = { top: 24, bottom: 24, left: 30, right: 24 },
       shapes = ['square','circle','cross','diamond','triangle-down','triangle-up'],
       symbolSize = Math.pow(__.radius,2),
       symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]),
@@ -136,7 +136,7 @@ var __ = {
       data_array = [],
       axisFn = {
           "x" :  d3.svg.axis().orient("bottom"),
-          "y" : d3.svg.axis().orient("right")
+          "y" : d3.svg.axis().orient("left")
         },
       update_duration = 300,
       bottom_surface, split_surface, data_surface, partition_surface; // groups for axes, brushes
@@ -203,11 +203,14 @@ var __ = {
     var top_surface = plot_offset.append('g');
 
     split_surface = top_surface.append('g')
-                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')');                    
+                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
 
     data_surface = top_surface.append('g')
                     .attr('transform','translate(' + padding.left + ',' + padding.top + ')')
                      .attr('clip-path','url(#plot_clip)');
+    label_surface = top_surface.append('g')
+                    .attr('class','label_surface')
+                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
     data_surface.append('g').attr('class','kde_surface');
     data_surface.append('g').attr('class','data');
     data_surface.append('g').attr('class','data_labels');
@@ -231,7 +234,7 @@ var __ = {
 
   // getter/setter with event firing
   function getset(obj,state,events)  {
-    d3.keys(state).forEach(function(key) {   
+    d3.keys(state).forEach(function(key) {
       obj[key] = function(x) {
         if (!arguments.length) return state[key];
         var old = state[key];
@@ -241,7 +244,7 @@ var __ = {
         return obj;
       };
     });
-  };
+  }
 
 cv.render = function() {
 
@@ -274,35 +277,44 @@ function reRender() {
 function drawAxes() {
   var textpaths = {
                   "x" : 'M 0 ' + (plotHeight()+28) + ' L '+ plotWidth() + ' ' + (plotHeight()+28),
-                  "y" : 'M ' + (plotWidth() + 45) + ' 0 L ' +(plotWidth() + 45) + ' ' + plotHeight()
+                  "y" : 'M ' + 0 + ' ' + plotHeight() + ' L ' + 0 + ' 0'
                 },
-      tick_transform = {
-                  "x" : 'translate(0,' + (plotHeight()) +')',
-                  "y" : 'translate('+ (plotWidth()) +',0)'
+      axis_transform = {
+                  "x" : 'translate(' + 0 + ',' + (displayHeight() + 10) + ')',
+                  "y" : 'translate(' + 10 + ', 0)'
+                },
+      label_transform = {
+                  "x" : function(d) {
+                          return "translate("+ (displayWidth()/2) +"," + (plotHeight() + 10) + ")" ;
+                      },
+                  "y" : function(d) {
+                          return "translate(" + (plotWidth()) + ',' + displayHeight() / 2 + ") rotate(90)";
+                      }
                 };
 
-  if (bottom_surface.select('.axis').node() !== null) return updateAxes();
+  if (label_surface.select('.axis').node() !== null) return updateAxes();
  ['x','y'].forEach( function(axis) {
-     var axisEl = bottom_surface.append('g')
-      .attr('class', axis + ' axis');
+     var axisEl = label_surface.append('g')
+      .attr('class', axis + 'axis axis');
 
      adjustTicks(axis);
 
-     cv.svg.select('defs').append('path')
-     .attr('id', axis+'_axis_alignment')
-     .attr('d', textpaths[axis] );
+     // cv.svg.select('defs').append('path')
+     // .attr('id', axis+'_axis_alignment')
+     // .attr('d', textpaths[axis] );
 
      axisEl.append('g')
       .attr('class','ticks')
-      .attr('transform',tick_transform[axis])
+      .attr('transform', axis_transform[axis])
       .call(axisFn[axis]);
 
      axisEl.append('text')
       .style('text-anchor','middle')
-     .append('textPath')
+      // .attr('transform',tick_transform[axis])
       .attr('class','axis_label')
-      .attr('xlink:href','#' + axis + '_axis_alignment')
-      .attr('startOffset','50%')
+      .attr("transform", label_transform[axis])
+      // .attr('xlink:href','#' + axis + '_axis_alignment')
+      // .attr('startOffset','50%')
       .text(__.axisLabel[axis]);
 
   });
@@ -314,7 +326,7 @@ function adjustTicks(axis) {
           "y" : [ 0, -1*plotWidth()+10 ],
           "x" : [ 0, 0]//-1*plotHeight()]
               },
-      axisEl = bottom_surface.select('.' + axis + '.axis');
+      axisEl = label_surface.select('.' + axis + 'axis.axis');
      
       axisEl.select('.categorical_ticks').remove();
 
@@ -342,19 +354,19 @@ function adjustTicks(axis) {
       .style('stroke', '#888')
       .style('stroke-width', '2px')
       .attr('x1', 10)
-      .attr('x2', plotWidth())
-      .attr('y1', function(point) { return point + halfBand + 2; } )
-      .attr('y2', function(point) { return point + halfBand + 2; } );
+      .attr('x2', displayWidth() + 10)
+      .attr('y1', function(point) { return point - halfBand; } )
+      .attr('y2', function(point) { return point - halfBand; } );
     }
     else {
     lines.enter()
       .append('line')
       .style('stroke', '#888')
       .style('stroke-width', '2px')
-      .attr('x1',function(point) { return point - halfBand; })
-      .attr('x2', function(point) { return point - halfBand; })
+      .attr('x1',function(point) { return point + halfBand; })
+      .attr('x2', function(point) { return point + halfBand; })
       .attr('y1', 10 )
-      .attr('y2',plotHeight() -10 );
+      .attr('y2', displayHeight() + 10 );
     }
     
   } else axisFn[axis].tickSize(tickSizes[axis][1]);
@@ -365,7 +377,7 @@ function adjustTicks(axis) {
 
 function updateAxes() {
   ['y','x'].forEach( function(axis) {
-    var axisEl = bottom_surface.select('.' + axis + '.axis');
+    var axisEl = label_surface.select('.' + axis + '.axis');
     axisScales[axis] = scales[axis].copy();
     if (__.dataType[axis] === 'c') {
       axisScales[axis].domain(scales[axis].domain().map(function (val) { return mapCategoricalValues(val, axis);}));
@@ -383,8 +395,8 @@ function mapCategoricalValues(value, axis) {
 
 function updateAxisLabels() {
 
-     var y_axis = bottom_surface.select('.y.axis'),
-      x_axis = bottom_surface.select('.x.axis');
+     var y_axis = label_surface.select('.y.axis'),
+      x_axis = label_surface.select('.x.axis');
 
       y_axis.select('.axis_label').text(__.axisLabel.y);
       x_axis.select('.axis_label').text(__.axisLabel.x);
@@ -616,9 +628,9 @@ function drawMultipleKDE(data_points) {
         .style("fill-opacity", 0.3);
 
   var kde_plot = kde_ensemble.selectAll('.kde_plot')
-          .data(function(d) { 
+          .data(function(d) {
             return [d.value];
-          }, function(d) { return d.key;} 
+          }, function(d) { return d.key; }
             );
 
   var g = kde_plot.enter()
@@ -641,17 +653,17 @@ function drawMultipleKDE(data_points) {
       .duration(update_duration)
          .attr("d", d3.svg.line()
           [cat_axis](function(p) { return cat_scale(p[1]); })
-          [num_axis](function(p) { return scales[num_axis](p[0])})
-         .interpolate("basis"));      
+          [num_axis](function(p) { return scales[num_axis](p[0]); })
+         .interpolate("basis"));
 
   kde_plot.transition().select('.kde_area')
       .duration(update_duration)
       .attr("d", d3.svg.area()
             .interpolate("basis")
-            [num_axis](function(p) {return scales[num_axis](p[0]);})
+            [num_axis](function(p) { return scales[num_axis](p[0]); })
             [cat_axis+'0'](cat_scale(0))
             [cat_axis+'1'](function(p) { return cat_scale(p[1]); })
-            );   
+            );
 
   kde_plot.exit().remove();
   kde_ensemble.exit().remove();
@@ -1022,8 +1034,8 @@ function defineCategoricalSplitShape ( selection, axis ) {
               .attr('height', padding.top);
   } else {
     selection.attr('transform', function(d) { return 'translate(0,' + ( scales[axis](d) - band/2 ) + ')'; } )
-              .attr('x',-1 * padding.left)
-              .attr('width', padding.left)
+              .attr('x',plotWidth() + __.margin.right )
+              .attr('width', padding.right)
               .attr('y', 0 )
               .attr('height', band);
   }
@@ -1039,7 +1051,7 @@ function drawCategoricalAxisSplits ( axis ) {
             .data( domain, String );
 
       splits.enter()
-           .append('rect')     
+           .append('rect')
               .call(defineCategoricalSplitShape, axis )
               .call(styleSplitSelector, axis )
               .on('mouseover', function() {
@@ -1082,7 +1094,7 @@ function defineNumericalSplitShape ( selection, axis ) {
      selection.attr('x',-1 * padding.left)
               .attr('width', padding.left)
               .attr('y', extent[1])
-              .attr('height', extent[0] - extent[1])
+              .attr('height', extent[0] - extent[1]);
   }
 }
 
@@ -1093,10 +1105,10 @@ function drawNumericalAxisSplits ( axis ) {
     var splits = split_group.selectAll('rect')
                       .data(["ZZZ"], String);
 
-    var mouse_position_index = (axis === 'y') + 0; 
+    var mouse_position_index = (axis === 'y') + 0;
 
     splits.enter()
-              .append('rect')             
+              .append('rect')
               .call(defineNumericalSplitShape, axis)
               .call(styleSplitSelector, axis)
               .on('mouseover',function(){
@@ -1113,7 +1125,7 @@ function drawNumericalAxisSplits ( axis ) {
                   if (selected[axis] !== null) {
                     clearSplitPointer(axis);
                     selected[axis] = null;
-                  } else { 
+                  } else {
                     selected[axis] = position;
                     appendNumericalSplitPointer(split_group, axis, position);
                    
@@ -1155,28 +1167,28 @@ function drawPartitionSpans() {
     var double_pad = pad *2;
 
     var partition_splits = [
-                            [ 
-                              pad, 
-                              pad, 
-                              split_data['x'].span ? split_data['x'].span - pad : displayWidth() + pad, 
-                              split_data['y'].span ? split_data['y'].span - pad : displayHeight()
-                            ],
-                            [ 
-                              split_data['x'].span ? split_data['x'].span : displayWidth(), 
-                              pad, 
-                              split_data['x'].span ? displayWidth() - split_data['x'].span + double_pad : 0, 
-                              split_data['y'].span ? split_data['y'].span - pad : displayHeight()
-                            ],
-                            [ 
+                            [
                               pad,
-                              split_data['y'].span ? split_data['y'].span : displayHeight(), 
-                              split_data['x'].span ? split_data['x'].span - pad : displayWidth() + pad, 
+                              pad,
+                              split_data['x'].span ? split_data['x'].span - pad : displayWidth(),
+                              split_data['y'].span ? split_data['y'].span - pad : displayHeight()
+                            ],
+                            [
+                              split_data['x'].span ? split_data['x'].span : displayWidth(),
+                              pad,
+                              split_data['x'].span ? displayWidth() - split_data['x'].span + pad : 0,
+                              split_data['y'].span ? split_data['y'].span - pad : displayHeight()
+                            ],
+                            [
+                              pad,
+                              split_data['y'].span ? split_data['y'].span : displayHeight(),
+                              split_data['x'].span ? split_data['x'].span - pad : displayWidth(),
                               split_data['y'].span ? displayHeight() - split_data['y'].span + pad : 0,
                             ],
-                            [ 
-                              split_data['x'].span ? split_data['x'].span : displayWidth(), 
-                              split_data['y'].span ? split_data['y'].span : displayHeight(), 
-                              split_data['x'].span ? displayWidth() - split_data['x'].span + double_pad : 0,
+                            [
+                              split_data['x'].span ? split_data['x'].span : displayWidth(),
+                              split_data['y'].span ? split_data['y'].span : displayHeight(),
+                              split_data['x'].span ? displayWidth() - split_data['x'].span + pad : 0,
                               split_data['y'].span ? displayHeight() - split_data['y'].span + pad : 0
                             ]
                           ];
@@ -1196,7 +1208,7 @@ function drawPartitionSpans() {
                     .attr('y',function(val) {return val[1];})
                     .attr('width', function(val) {return val[2];})
                     .attr('height',function(val) {return val[3];})
-                    .style('fill',function(d,i) { return partitionColors[i]})
+                    .style('fill',function(d,i) { return partitionColors[i]; })
                     .style('fill-opacity',0.3)
                     .style('stroke','none')
                     .style('stroke-opacity','0.6')
@@ -1235,7 +1247,7 @@ function drawPartitionSpans() {
                         }
                       }
                       events.partitioncomplete( split_obj );
-                    });              
+                    });
 
                 partitions
                     .attr('x',function(val) {return val[0];})
@@ -1262,9 +1274,9 @@ function clearPartitionSpans() {
   }
 
 function mousemove_fn(axis) {
-    return function(){ 
+    return function(){
                 var position = d3.mouse(this)[axis === 'x' ? 0 : 1];
-                if (selected[axis] === null) selectSplitValue(position, axis);            
+                if (selected[axis] === null) selectSplitValue(position, axis);
     };
   }
 
@@ -1285,7 +1297,7 @@ function makeSplitSelection(el, index, axis){
 }
 
 function selectSplitValue(position, axis) {
-  var value = scales[axis].invert(position)
+  var value = scales[axis].invert(position);
   split_data[axis].span = position;
   drawPartitionSpans();
   updateSplitTextLabel(position, axis);
@@ -1293,15 +1305,22 @@ function selectSplitValue(position, axis) {
 
 function selectCategoricalSplitValue(value, axis) {
   var domain = scales[axis].domain();
+  var rangeExtent = scales[axis].rangeExtent();
   if (!_.contains(selected[axis], value)) selected[axis].push(value);
+
   var remaining_values = _.difference( domain, selected[axis] ),
       new_domain = _.union(selected[axis],remaining_values),
-      band = ((scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / new_domain.length) ;
+      band = ((rangeExtent[1] - rangeExtent[0]) / new_domain.length) ;
 
-  scales[axis].domain(new_domain);
-  scales[axis].invert.range(new_domain);
-  
-  split_data[axis].span  = scales[axis](value) - ( band/2 * (axis === 'x' ? -1 : 1) );
+  if ( remaining_values.length <= 0 ) {
+    split_data[axis].span = null;
+    selected[axis] = [];
+    return;
+  }
+
+    scales[axis].domain(new_domain);
+    scales[axis].invert.range(new_domain);
+    split_data[axis].span  = scales[axis](value) - ( band/2 * (axis === 'x' ? -1 : 1) );
   
 }
 
@@ -1309,7 +1328,7 @@ function removeCategoricalSplitValue(value, axis) {
   if (!_.contains(selected[axis], value)) return;
   
   selected[axis] = _.difference( selected[axis], [ value ] );
-  var len = selected[axis].length
+  var len = selected[axis].length,
       remaining_values = len ? _.difference( scales[axis].domain(), selected[axis] ) : scales[axis].domain(),
       domain = len ? _.union(selected[axis],remaining_values) : remaining_values,
       band = ((scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / domain.length) ;
@@ -1323,7 +1342,7 @@ function removeCategoricalSplitValue(value, axis) {
 function clearAllSplitSelections() {
   ['x','y'].forEach( function(axis) {
     selected[axis] = __.dataType[axis] === 'n' ? null : [];
-    clearSplitSelection(axis)
+    clearSplitSelection(axis);
     });
 }
 
@@ -1365,23 +1384,23 @@ function parseSplits() {
       }
 
       split_bin_number = split_data[axis].data_array.length;
-      split_bin_start = __.splits[axis].low+(.5*__.splits[axis].binsize);
+      split_bin_start = __.splits[axis].low + ( 0.5 * __.splits[axis].binsize );
       split_bin_end = split_bin_start + ((split_bin_number-1)*__.splits[axis].binsize);
 
-      var bin_positions = s.map( function(d,i) { 
-        return split_bin_start + (__.splits[axis].binsize * i); 
+      var bin_positions = s.map( function(d,i) {
+        return split_bin_start + (__.splits[axis].binsize * i);
       });
 
       var range = scales[axis].domain(), min = range[0], max = range[1];
       s= [];
       var idx = 0, bin_p = [];
 
-       bin_positions.forEach( function(val, index) { 
+       bin_positions.forEach( function(val, index) {
           if (val >= min && val <= max) {
             bin_p[idx] = val;
             s[idx] = split_data[axis].data_array[index];
             idx++;
-          } 
+          }
       });
 
       split_bin_number = bin_p.length;
@@ -1413,7 +1432,7 @@ function parseSplits() {
 
   return cv;
 
-};
+}
 
 // From science.js https://github.com/jasondavies/science.js/
 // Copyright (c) 2011, Jason Davies
@@ -1488,7 +1507,7 @@ science.stats.kernel = {
     return 0;
   },
   gaussian: function(u) {
-    return 1 / Math.sqrt(2 * Math.PI) * Math.exp(-.5 * u * u);
+    return 1 / Math.sqrt(2 * Math.PI) * Math.exp(-0.5 * u * u);
   },
   cosine: function(u) {
     if (u <= 1 && u >= -1) return Math.PI / 4 * Math.cos(Math.PI / 2 * u);
@@ -1540,7 +1559,7 @@ science.stats.quantiles = function(d, quantiles) {
 };
 
 science.stats.iqr = function(x) {
-  var quartiles = science.stats.quantiles(x, [.25, .75]);
+  var quartiles = science.stats.quantiles(x, [0.25, 0.75]);
   return quartiles[1] - quartiles[0];
 };
 
@@ -1551,15 +1570,14 @@ science.stats.bandwidth = {
     var hi = Math.sqrt(science.stats.variance(x));
     if (!(lo = Math.min(hi, science.stats.iqr(x) / 1.34)))
       (lo = hi) || (lo = Math.abs(x[1])) || (lo = 1);
-    return .9 * lo * Math.pow(x.length, -.2);
+    return 0.9 * lo * Math.pow(x.length, -0.2);
   },
 
   // Scott, D. W. (1992) Multivariate Density Estimation: Theory, Practice, and
   // Visualization. Wiley.
   nrd: function(x) {
     var h = science.stats.iqr(x) / 1.34;
-    return 1.06 * Math.min(Math.sqrt(science.stats.variance(x)), h)
-      * Math.pow(x.length, -1/5);
+    return 1.06 * Math.min(Math.sqrt(science.stats.variance(x)), h) * Math.pow(x.length, -1/5);
   }
 };
 
