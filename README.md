@@ -53,6 +53,8 @@ var data = [
 ]
 
 var carve_obj = carve({
+            width : 600,
+            height: 450,
             radius : 20,
             margin : { top: 15, bottom: 20, left: 15, right: 50 }
         });
