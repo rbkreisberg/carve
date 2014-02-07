@@ -93,11 +93,11 @@
     }, selected = {
       x: null,
       y: null
-    }, min_uniq_points = 0, domainScalingFactor = 1.04, caseSplitsOpacityscale, padding = {
-      top: 24,
-      bottom: 24,
+    }, min_uniq_points = 4, domainScalingFactor = 1.04, caseSplitsOpacityscale, padding = {
+      top: 15,
+      bottom: 15,
       left: 30,
-      right: 24
+      right: 20
     }, shapes = [ "square", "circle", "cross", "diamond", "triangle-down", "triangle-up" ], symbolSize = Math.pow(__.radius, 2), symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]), symbolMap = d3.scale.ordinal().domain([ 0, 5 ]).range(shapes), symbolFunction = _.compose(symbol.type, symbolMap), colorCategories = [], colorCategoryIsNumerical = false, strokeFunction = function(index) {
       return splitStrokeColors[index];
     }, data_array = [], axisFn = {
@@ -119,15 +119,15 @@
       cv.svg = selection.append("div").attr("class", "cv_wrapper").append("svg").attr("class", "cv").attr("width", __.width).attr("height", __.height);
       cv.canvas = selection.select("div").append("canvas").attr("class", "cv").style("position", "absolute").attr("width", displayWidth()).attr("height", displayHeight()).style("left", padding.left + __.margin.left + "px").style("top", padding.top + __.margin.top + "px").style("z-index", -180);
       var defs = cv.svg.append("defs");
-      defs.append("svg:clipPath").attr("id", "plot_clip").append("svg:rect").attr("id", "clip-rect").attr("x", "10").attr("y", "10").attr("width", plotWidth() - 10).attr("height", plotHeight() - 20);
+      defs.append("svg:clipPath").attr("id", "plot_clip").append("svg:rect").attr("id", "clip-rect").attr("x", "0").attr("y", "0").attr("width", displayWidth()).attr("height", displayHeight());
       defs.append("svg:clipPath").attr("id", "viewbox_clip").append("svg:rect").attr("x", "0").attr("y", "0").attr("width", outerWidth()).attr("height", outerHeight());
-      var plot_offset = cv.svg.append("svg").attr("clip", "url(#viewbox_clip)").attr("overflow", "hidden").attr("transform", "translate(" + __.margin.left + "," + __.margin.top + ")");
+      label_surface = cv.svg.append("g").attr("class", "label_surface").attr("transform", "translate(" + (padding.left + __.margin.left + 10) + "," + (padding.top + __.margin.top + 10) + ")");
+      var plot_offset = cv.svg.append("svg").attr("clip", "url(#viewbox_clip)").attr("overflow", "hidden").attr("x", __.margin.left).attr("y", __.margin.top);
       bottom_surface = plot_offset.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
-      partition_surface = bottom_surface.append("g");
-      var top_surface = plot_offset.append("g");
-      split_surface = top_surface.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
-      data_surface = top_surface.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")").attr("clip-path", "url(#plot_clip)");
-      label_surface = top_surface.append("g").attr("class", "label_surface").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
+      partition_surface = bottom_surface.append("g").attr("transform", "translate(10,10)").attr("class", "partition_surface");
+      var top_surface = plot_offset.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
+      split_surface = top_surface.append("g").attr("transform", "translate(10,0)").attr("class", "split_surface");
+      data_surface = top_surface.append("g").attr("transform", "translate(10,10)").attr("clip-path", "url(#plot_clip)");
       data_surface.append("g").attr("class", "kde_surface");
       data_surface.append("g").attr("class", "data");
       data_surface.append("g").attr("class", "data_labels");
@@ -189,8 +189,8 @@
         x: "M 0 " + (plotHeight() + 28) + " L " + plotWidth() + " " + (plotHeight() + 28),
         y: "M " + 0 + " " + plotHeight() + " L " + 0 + " 0"
       }, axis_transform = {
-        x: "translate(" + 0 + "," + (displayHeight() + 10) + ")",
-        y: "translate(" + 10 + ", 0)"
+        x: "translate(" + 0 + "," + displayHeight() + ")",
+        y: "translate(0, 0)"
       }, label_transform = {
         x: function(d) {
           return "translate(" + displayWidth() / 2 + "," + outerHeight() + ")";
@@ -209,7 +209,7 @@
     }
     function adjustTicks(axis) {
       var tickSizes = {
-        y: [ 0, -1 * plotWidth() + 10 ],
+        y: [ 0, -1 * displayWidth() ],
         x: [ 0, 0 ]
       }, axisEl = label_surface.select("." + axis + "axis.axis");
       axisEl.select(".categorical_ticks").remove();
@@ -220,7 +220,7 @@
         var extent = scales[axis].range(), band = (scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / extent.length, halfBand = band / 2;
         var lines = ordinal.selectAll("line").data(ticks);
         if (axis == "y") {
-          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "2px").attr("x1", 10).attr("x2", displayWidth() + 10).attr("y1", function(point) {
+          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "2px").attr("x1", 0).attr("x2", displayWidth()).attr("y1", function(point) {
             return point - halfBand;
           }).attr("y2", function(point) {
             return point - halfBand;
@@ -230,14 +230,14 @@
             return point + halfBand;
           }).attr("x2", function(point) {
             return point + halfBand;
-          }).attr("y1", 10).attr("y2", displayHeight() + 10);
+          }).attr("y1", 0).attr("y2", displayHeight());
         }
       } else axisFn[axis].tickSize(tickSizes[axis][1]);
       axisFn[axis].tickFormat(format);
     }
     function updateAxes() {
       [ "y", "x" ].forEach(function(axis) {
-        var axisEl = label_surface.select("." + axis + ".axis");
+        var axisEl = label_surface.select("." + axis + "axis.axis");
         axisScales[axis] = scales[axis].copy();
         if (__.dataType[axis] === "c") {
           axisScales[axis].domain(scales[axis].domain().map(function(val) {
@@ -475,13 +475,12 @@
         var xVals = _.uniq(_.pluck(__.data, __.axisKey.x)), yVals = _.uniq(_.pluck(__.data, __.axisKey.y));
         __.dataType.x = isCategorical(xVals) ? "c" : "n";
         __.dataType.y = isCategorical(yVals) ? "c" : "n";
+        data_array = __.data;
+        setDataScales(xVals, yVals);
       } else {
         console.error("x or y coordinates not packaged in data");
-        return;
       }
-      data_array = __.data;
-      setDataScales(xVals, yVals);
-      return cv;
+      return;
     }
     function scaleRangeValues(values, scale) {
       var low = values[0], high = values[1], width = high - low || 1, margin = width * (scale - 1);
@@ -491,8 +490,8 @@
       var splits_on_x = _.pluck(data_array, "splits_on_x");
       caseSplitsOpacityscale = d3.scale.linear().domain(d3.extent(splits_on_x)).range([ .2, .9 ]);
       var range = {
-        x: [ 10, plotWidth() - 10 ],
-        y: [ plotHeight() - 10, 10 ]
+        x: [ 0, displayWidth() ],
+        y: [ displayHeight(), 0 ]
       }, vals = {
         x: _.union(xVals, __.axisInsistCategoricalValues.x).sort(),
         y: _.union(yVals, __.axisInsistCategoricalValues.y).sort().reverse()
@@ -568,7 +567,7 @@
       };
     }
     function setAxes() {
-      axisFn["y"].scale(scales["y"]).tickSize(-1 * plotWidth() + 10).ticks(5);
+      axisFn["y"].scale(scales["y"]).tickSize(-1 * displayWidth()).ticks(5);
       axisFn["x"].scale(scales["x"]).tickSize(2).ticks(5);
       return cv;
     }
@@ -683,24 +682,24 @@
       split_data[axis].binScale = d3.scale.linear().domain([ 0, split_bin_number - 1 ]).rangeRound([ scales[axis](split_bin_start), scales[axis](split_bin_end) ]);
     }
     function drawSplitLabel() {
-      if (bottom_surface.select(".split_labels").node() !== null) {
+      if (label_surface.select(".split_labels").node() !== null) {
         return;
       }
-      var split_labels = bottom_surface.append("g").attr("class", "split_labels");
-      split_labels.append("text").attr("class", "x").attr("transform", "translate(0," + plotHeight() + ")").text("");
-      split_labels.append("text").attr("class", "y").attr("transform", "translate(0,0)").text("");
+      var split_labels = label_surface.append("g").attr("class", "split_labels");
+      split_labels.append("text").attr("class", "x").attr("text-anchor", "middle").attr("dy", "1em").text("");
+      split_labels.append("text").attr("class", "y").attr("text-anchor", "right").attr("dx", "0.1em").text("");
     }
     function updateSplitTextLabel(position, axis) {
       var format = d3.format(".3f");
       if (position === null) {
-        bottom_surface.select(".split_labels ." + axis).text("");
+        label_surface.select(".split_labels ." + axis).text("");
         return;
       }
       var transform = {
-        x: axis === "x" ? position : plotWidth() + 2,
-        y: axis === "y" ? position : plotHeight() + 2
+        x: axis === "x" ? position : 0,
+        y: axis === "y" ? position : 0
       };
-      bottom_surface.select(".split_labels ." + axis).text(format(scales[axis].invert(position))).attr("transform", "translate(" + transform.x + "," + transform.y + ")");
+      label_surface.select(".split_labels ." + axis).text(format(scales[axis].invert(position))).attr("transform", "translate(" + transform.x + "," + transform.y + ")");
     }
     function drawSplits() {
       [ "x", "y" ].forEach(function(axis) {
@@ -727,15 +726,20 @@
       if (axis === "x") {
         selection.attr("transform", function(d) {
           return "translate(" + (scales[axis](d) - band / 2) + ",0)";
-        }).attr("x", 0).attr("width", band).attr("y", -1 * padding.top).attr("height", padding.top);
+        }).attr("x", 0).attr("width", band).attr("y", -10 - 2).attr("height", 10);
       } else {
         selection.attr("transform", function(d) {
-          return "translate(0," + (scales[axis](d) - band / 2) + ")";
-        }).attr("x", plotWidth() + __.margin.right).attr("width", padding.right).attr("y", 0).attr("height", band);
+          return "translate(4," + (scales[axis](d) - band / 2 + 10) + ")";
+        }).attr("x", 0).attr("width", 10).attr("y", 0).attr("height", band);
       }
     }
     function drawCategoricalAxisSplits(axis) {
       var split_group = split_surface.select("." + axis + ".split_group");
+      if (axis === "y") {
+        split_group.attr("transform", function(d) {
+          return "translate(" + displayWidth() + ",0)";
+        });
+      }
       var domain = scales[axis].domain();
       var splits = split_group.selectAll("rect").data(domain, String);
       splits.enter().append("rect").call(defineCategoricalSplitShape, axis).call(styleSplitSelector).on("mouseover", function() {
@@ -756,19 +760,18 @@
     function defineNumericalSplitShape(selection, axis) {
       var extent = scales[axis].range();
       if (axis === "x") {
-        selection.attr("x", extent[0]).attr("width", extent[1] - extent[0]).attr("y", -1 * padding.top).attr("height", padding.top);
+        selection.attr("x", extent[0]).attr("width", extent[1] - extent[0]).attr("y", -1 * 10).attr("height", 10);
       } else {
-        selection.attr("x", -1 * padding.left).attr("width", padding.left).attr("y", extent[1]).attr("height", extent[0] - extent[1]);
+        selection.attr("x", 0).attr("width", 10).attr("y", 0).attr("height", extent[0] - extent[1]);
       }
-    }
-    function mousemove_fn(axis) {
-      return function() {
-        var position = d3.mouse(this)[axis === "x" ? 0 : 1];
-        if (selected[axis] === null) selectSplitValue(position, axis);
-      };
     }
     function drawNumericalAxisSplits(axis) {
       var split_group = split_surface.select("." + axis + ".split_group");
+      if (axis === "y") {
+        split_group.attr("transform", function(d) {
+          return "translate(" + (displayWidth() + 4) + ",10)";
+        });
+      }
       var splits = split_group.selectAll("rect").data([ "ZZZ" ], String);
       var mouse_position_index = (axis === "y") + 0;
       splits.enter().append("rect").call(defineNumericalSplitShape, axis).call(styleSplitSelector).on("mouseover", function() {
@@ -789,19 +792,25 @@
       });
       splits.exit().remove();
     }
+    function mousemove_fn(axis) {
+      return function() {
+        var position = d3.mouse(this)[axis === "x" ? 0 : 1];
+        if (selected[axis] === null) selectSplitValue(position, axis);
+      };
+    }
     function appendNumericalSplitPointer(selection, axis, position) {
       if (axis === "x") {
         selection.append("path").attr("class", axis + " split_pointer").attr("transform", "translate(" + position + ",0)").attr("d", function(d, i) {
-          return "M" + 0 + ",-" + padding.top + "v" + padding.top;
+          return "M0,-" + 10 + "v" + 10;
         }).style("stroke", "#cc6432").style("stroke-width", 4).style("fill", "#cc6432");
       } else {
-        selection.append("path").attr("class", "y split_pointer").attr("transform", "translate(0," + position + ")").attr("d", function(d, i) {
-          return "M" + "-" + padding.left + ",0h" + padding.left;
+        selection.append("path").attr("class", axis + " split_pointer").attr("transform", "translate(0," + position + ")").attr("d", function(d, i) {
+          return "M0,0h" + 10;
         }).style("stroke", "#cc6432").style("stroke-width", 4).style("fill", "#cc6432");
       }
     }
     function drawPartitionSpans() {
-      var pad = 10;
+      var pad = 0;
       var double_pad = pad * 2;
       var partition_splits = [ [ pad, pad, split_data["x"].span ? split_data["x"].span - pad : displayWidth(), split_data["y"].span ? split_data["y"].span - pad : displayHeight() ], [ split_data["x"].span ? split_data["x"].span : displayWidth(), pad, split_data["x"].span ? displayWidth() - split_data["x"].span + pad : 0, split_data["y"].span ? split_data["y"].span - pad : displayHeight() ], [ pad, split_data["y"].span ? split_data["y"].span : displayHeight(), split_data["x"].span ? split_data["x"].span - pad : displayWidth(), split_data["y"].span ? displayHeight() - split_data["y"].span + pad : 0 ], [ split_data["x"].span ? split_data["x"].span : displayWidth(), split_data["y"].span ? split_data["y"].span : displayHeight(), split_data["x"].span ? displayWidth() - split_data["x"].span + pad : 0, split_data["y"].span ? displayHeight() - split_data["y"].span + pad : 0 ] ];
       if (_.isNull(split_data["x"].span) && _.isNull(split_data["y"].span)) {
