@@ -6,8 +6,8 @@ function drawAxes() {
                   "y" : 'M ' + 0 + ' ' + plotHeight() + ' L ' + 0 + ' 0'
                 },
       axis_transform = {
-                  "x" : 'translate(' + 0 + ',' + (displayHeight() + 10) + ')',
-                  "y" : 'translate(' + 10 + ', 0)'
+                  "x" : 'translate(' + 0 + ',' + displayHeight() + ')',
+                  "y" : 'translate(0, 0)'
                 },
       label_transform = {
                   "x" : function(d) {
@@ -25,10 +25,6 @@ function drawAxes() {
 
      adjustTicks(axis);
 
-     // cv.svg.select('defs').append('path')
-     // .attr('id', axis+'_axis_alignment')
-     // .attr('d', textpaths[axis] );
-
      axisEl.append('g')
       .attr('class','ticks')
       .attr('transform', axis_transform[axis])
@@ -36,11 +32,8 @@ function drawAxes() {
 
      axisEl.append('text')
       .style('text-anchor','middle')
-      // .attr('transform',tick_transform[axis])
       .attr('class','axis_label')
       .attr("transform", label_transform[axis])
-      // .attr('xlink:href','#' + axis + '_axis_alignment')
-      // .attr('startOffset','50%')
       .text(__.axisLabel[axis]);
 
   });
@@ -49,8 +42,8 @@ function drawAxes() {
 
 function adjustTicks(axis) {
   var tickSizes = {
-          "y" : [ 0, -1*plotWidth()+10 ],
-          "x" : [ 0, 0]//-1*plotHeight()]
+          "y" : [ 0, -1*displayWidth() ],
+          "x" : [ 0, 0]
               },
       axisEl = label_surface.select('.' + axis + 'axis.axis');
      
@@ -79,8 +72,8 @@ function adjustTicks(axis) {
       .append('line')
       .style('stroke', '#888')
       .style('stroke-width', '2px')
-      .attr('x1', 10)
-      .attr('x2', displayWidth() + 10)
+      .attr('x1', 0)
+      .attr('x2', displayWidth())
       .attr('y1', function(point) { return point - halfBand; } )
       .attr('y2', function(point) { return point - halfBand; } );
     }
@@ -91,8 +84,8 @@ function adjustTicks(axis) {
       .style('stroke-width', '2px')
       .attr('x1',function(point) { return point + halfBand; })
       .attr('x2', function(point) { return point + halfBand; })
-      .attr('y1', 10 )
-      .attr('y2', displayHeight() + 10 );
+      .attr('y1', 0 )
+      .attr('y2', displayHeight());
     }
     
   } else axisFn[axis].tickSize(tickSizes[axis][1]);
@@ -103,7 +96,7 @@ function adjustTicks(axis) {
 
 function updateAxes() {
   ['y','x'].forEach( function(axis) {
-    var axisEl = label_surface.select('.' + axis + '.axis');
+    var axisEl = label_surface.select('.' + axis + 'axis.axis');
     axisScales[axis] = scales[axis].copy();
     if (__.dataType[axis] === 'c') {
       axisScales[axis].domain(scales[axis].domain().map(function (val) { return mapCategoricalValues(val, axis);}));
@@ -161,17 +154,6 @@ data_points
   }
 
 function drawMultipleBarchart(data_points) {
-
-      // var xInversed = {};
-      // scales.x.domain().forEach( function(label, index) {
-      //   xInversed[label] = index;
-      // });
-      // var yInversed = {};
-      // scales.y.domain().forEach( function(label, index) {
-      //   yInversed[label] = index;
-      // });
-
-      // var totalWidth = colorCategories.length * 15;
 
       var d = {};
             scales.x.domain().forEach( function(label) {
