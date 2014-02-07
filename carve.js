@@ -285,7 +285,7 @@ function drawAxes() {
                 },
       label_transform = {
                   "x" : function(d) {
-                          return "translate("+ (displayWidth()/2) +"," + (plotHeight() + 10) + ")" ;
+                          return "translate("+ (displayWidth()/2) +"," + outerHeight() + ")" ;
                       },
                   "y" : function(d) {
                           return "translate(" + (plotWidth()) + ',' + displayHeight() / 2 + ") rotate(90)";
