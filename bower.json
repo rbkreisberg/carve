@@ -1,12 +1,25 @@
 {
   "name": "carve",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "carve.js",
+  "scripts": [
+    "carve.js"
+  ],
   "ignore": [
-    "**/.*",
+    ".DS_Store",
+    ".git",
+    ".gitignore",
+    ".npmignore",
+    ".travis.yml",
+    ".bowerrc",
+    "Makefile",
+    "bin",
+    "component.json",
+    "index.js",
+    "lib",
     "node_modules",
-    "components",
-    "bower_components",
-    "examples"
+    "package.json",
+    "src",
+    "test"
   ]
 }

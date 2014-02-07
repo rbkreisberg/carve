@@ -1,0 +1,58 @@
+{
+  "name": "carve",
+  "version": "0.0.9",
+  "description": "Flexible 2.5 dimensional plotting tool.",
+  "keywords": [
+    "visualization"
+  ],
+  "homepage": "http://github.com/rbkreisberg/carve",
+  "author": {
+    "name": "Dick Kreisberg",
+    "url": "http://kreisberg.org"
+  },
+  "contributors": [
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rbkreisberg/carve.git"
+  },
+  "main": "carve.js",
+  "browserify": "carve.js",
+  "jspm": {
+    "main": "carve.js",
+    "shim": {
+      "carve": {
+        "exports": "carve"
+      }
+    },
+    "files": [
+      "carve.js"
+    ],
+    "buildConfig": {
+      "uglify": true
+    }
+  },
+  "jam": {
+    "main": "carve.js",
+    "shim": {
+      "exports": "carve"
+    }
+  },
+  "dependencies": {
+    "jsdom": "0.5.7"
+  },
+  "devDependencies": {
+    "smash": "~0.0.12",
+    "uglify-js": "2.4.0",
+    "vows": "0.7.0"
+  },
+  "scripts": {
+    "test": "vows; echo"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/rbkreisberg/carve/blob/master/LICENSE.md"
+    }
+  ]
+}
