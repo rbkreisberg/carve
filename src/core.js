@@ -93,10 +93,10 @@ var __ = {
               },
 
       selected = {x: null, y: null},
-      min_uniq_points = 0,
+      min_uniq_points = 4,
       domainScalingFactor = 1.04,
       caseSplitsOpacityscale,
-      padding = { top: 24, bottom: 24, left: 30, right: 24 },
+      padding = { top: 15, bottom: 15, left: 30, right: 20 },
       shapes = ['square','circle','cross','diamond','triangle-down','triangle-up'],
       symbolSize = Math.pow(__.radius,2),
       symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]),
@@ -160,10 +160,10 @@ var __ = {
                     .attr("id", "plot_clip")
                     .append("svg:rect")
                     .attr("id", "clip-rect")
-                    .attr("x", "10")
-                    .attr("y", "10")
-                    .attr("width", plotWidth()-10)
-                    .attr("height", plotHeight() - 20);
+                    .attr("x", "0")
+                    .attr("y", "0")
+                    .attr("width", displayWidth())
+                    .attr("height", displayHeight());
             defs.append("svg:clipPath")
                     .attr("id", "viewbox_clip")
                     .append("svg:rect")
@@ -172,27 +172,35 @@ var __ = {
                     .attr("width", outerWidth())
                     .attr("height", outerHeight());
 
+      label_surface = cv.svg.append('g')
+                    .attr('class','label_surface')
+                    .attr('transform','translate(' + (padding.left + __.margin.left + 10) + ',' +  (padding.top +  __.margin.top + 10 ) + ')');
+    
+
     var plot_offset = cv.svg.append('svg')
                         .attr('clip','url(#viewbox_clip)')
                         .attr('overflow','hidden')
-                        .attr('transform','translate('+__.margin.left+','+ __.margin.top+')');
+                        .attr('x',__.margin.left)
+                        .attr('y', __.margin.top);
                        
     bottom_surface = plot_offset.append('g')
                         .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
 
-    partition_surface = bottom_surface.append('g');
+    partition_surface = bottom_surface.append('g')
+                        .attr('transform','translate(10,10)')
+                        .attr('class','partition_surface');
                          
-    var top_surface = plot_offset.append('g');
+    var top_surface = plot_offset.append('g')
+                      .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
 
     split_surface = top_surface.append('g')
-                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
+                      .attr('transform','translate(10,0)')
+                      .attr('class','split_surface');
 
     data_surface = top_surface.append('g')
-                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')')
+                      .attr('transform','translate(10,10)')
                      .attr('clip-path','url(#plot_clip)');
-    label_surface = top_surface.append('g')
-                    .attr('class','label_surface')
-                    .attr('transform','translate(' + padding.left + ',' + padding.top + ')');
+
     data_surface.append('g').attr('class','kde_surface');
     data_surface.append('g').attr('class','data');
     data_surface.append('g').attr('class','data_labels');
