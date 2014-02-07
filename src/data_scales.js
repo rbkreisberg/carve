@@ -32,20 +32,18 @@ function parseData() {
     var xVals = _.uniq(_.pluck(__.data, __.axisKey.x ) ),
         yVals = _.uniq(_.pluck(__.data,  __.axisKey.y ) );
         
-            __.dataType.x =  isCategorical( xVals ) ? 'c' : 'n';
-            __.dataType.y =  isCategorical( yVals ) ? 'c' : 'n';
-        
-  }
-  else {
+    __.dataType.x =  isCategorical( xVals ) ? 'c' : 'n';
+    __.dataType.y =  isCategorical( yVals ) ? 'c' : 'n';
+
+    data_array = __.data;
+
+    setDataScales(xVals, yVals);
+    
+  } else {
     console.error('x or y coordinates not packaged in data');
-    return;
   }
 
-  data_array = __.data;
-
-  setDataScales(xVals, yVals);
-
-  return cv;
+  return;
 }
 
 function scaleRangeValues( values, scale) {
@@ -64,8 +62,8 @@ function setDataScales( xVals, yVals ) {  //unique values for each dimension
   caseSplitsOpacityscale = d3.scale.linear().domain(d3.extent(splits_on_x)).range([0.2,0.9]);
 
   var range = {
-              "x" : [ 10, plotWidth()-10 ],
-              "y" : [ plotHeight()-10, 10 ]
+              "x" : [ 0, displayWidth() ],
+              "y" : [ displayHeight(), 0 ]
               },
       vals = {
               "x" : _.union(xVals,__.axisInsistCategoricalValues.x).sort(),
@@ -175,7 +173,7 @@ function setClassScales(obj) {
 
 function setAxes() {
   
-  axisFn["y"].scale(scales['y']).tickSize(-1*plotWidth()+10).ticks(5);
+  axisFn["y"].scale(scales['y']).tickSize(-1*displayWidth()).ticks(5);
   axisFn["x"].scale(scales['x']).tickSize(2).ticks(5);
 
   return cv;
