@@ -2,32 +2,34 @@
 
 function drawSplitLabel() {
 
-  if (bottom_surface.select('.split_labels').node() !== null) { return; }
-    var split_labels = bottom_surface.append('g')
+  if (label_surface.select('.split_labels').node() !== null) { return; }
+    var split_labels = label_surface.append('g')
                           .attr('class','split_labels');
     split_labels.append('text')
                 .attr('class','x')
-                .attr('transform','translate(0,'+plotHeight()+')')
+                .attr('text-anchor','middle')
+                .attr('dy','1em')
                 .text('');
 
     split_labels.append('text')
                 .attr('class','y')
-                .attr('transform','translate(0,0)')
+                .attr('text-anchor','right')
+                .attr('dx', '0.1em')
                 .text('');
 }
 
 function updateSplitTextLabel(position, axis) {
   var format = d3.format('.3f');
     if (position === null) {
-      bottom_surface.select('.split_labels .' + axis)
+      label_surface.select('.split_labels .' + axis)
                       .text('');
       return;
     }
     var transform = {
-                  "x" : axis === 'x' ? position : plotWidth()+2,
-                  "y" : axis === 'y' ? position : plotHeight()+2
+                  "x" : axis === 'x' ? position : 0,
+                  "y" : axis === 'y' ? position : 0
     };
-    bottom_surface.select('.split_labels .' + axis)
+    label_surface.select('.split_labels .' + axis)
                     .text(format(scales[axis].invert(position)))
                     .attr('transform','translate(' + transform.x + ',' + transform.y + ')');
 }
@@ -73,23 +75,29 @@ function defineCategoricalSplitShape ( selection, axis ) {
          band = ((scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / extent.length) - 10;
 
   if (axis === 'x') {
-    selection.attr('transform', function(d) { return 'translate(' + (scales[axis](d) - band/2) + ',0)'; } )
-              .attr('x', 0)
-              .attr('width', band)
-              .attr('y', -1 * padding.top)
-              .attr('height', padding.top);
+    selection
+      .attr('transform', function(d) { return 'translate(' + (scales[axis](d) - band/2) + ',0)'; } )
+      .attr('x', 0)
+      .attr('width', band)
+      .attr('y', -10 -2)
+      .attr('height', 10 );
   } else {
-    selection.attr('transform', function(d) { return 'translate(0,' + ( scales[axis](d) - band/2 ) + ')'; } )
-              .attr('x',plotWidth() + __.margin.right )
-              .attr('width', padding.right)
-              .attr('y', 0 )
-              .attr('height', band);
+    selection
+      .attr('transform', function(d) { return 'translate(4,' + ( scales[axis](d) - band/2  + 10) + ')'; })
+      .attr('x', 0 )
+      .attr('width', 10)
+      .attr('y', 0 )
+      .attr('height', band);
   }
 }
 
 function drawCategoricalAxisSplits ( axis ) {
    
   var split_group = split_surface.select('.' + axis + '.split_group');
+  if (axis === 'y') {
+    split_group
+      .attr('transform', function(d) { return 'translate(' + displayWidth() + ',0)'; } );
+  }
 
   var domain = scales[axis].domain();
 
@@ -134,27 +142,24 @@ function defineNumericalSplitShape ( selection, axis ) {
     selection
               .attr('x',extent[0])
               .attr('width', extent[1] - extent[0])
-              .attr('y', -1 * padding.top)
-              .attr('height', padding.top);
+              .attr('y', -1 * 10)
+              .attr('height', 10);
   } else {
-     selection.attr('x',-1 * padding.left)
-              .attr('width', padding.left)
-              .attr('y', extent[1])
+     selection
+              .attr('x', 0)
+              .attr('width', 10)
+              .attr('y', 0)
               .attr('height', extent[0] - extent[1]);
   }
 }
 
-
-function mousemove_fn(axis) {
-    return function(){
-                var position = d3.mouse(this)[axis === 'x' ? 0 : 1];
-                if (selected[axis] === null) selectSplitValue(position, axis);
-    };
-  }
-
 function drawNumericalAxisSplits ( axis ) {
     
     var split_group = split_surface.select('.' + axis + '.split_group');
+    if (axis === 'y') {
+      split_group
+        .attr('transform', function(d) { return 'translate(' + (displayWidth() + 4) + ',10)'; } );
+    }
     
     var splits = split_group.selectAll('rect')
                       .data(["ZZZ"], String);
@@ -190,26 +195,33 @@ function drawNumericalAxisSplits ( axis ) {
               
   }
 
+function mousemove_fn(axis) {
+    return function(){
+                var position = d3.mouse(this)[axis === 'x' ? 0 : 1];
+                if (selected[axis] === null) selectSplitValue(position, axis);
+    };
+  }
+
 function appendNumericalSplitPointer(selection, axis, position) {
   if (axis ==='x') {
    selection.append('path')
                       .attr('class',axis + ' split_pointer')
-                      .attr('transform','translate('+position+',0)')
+                      .attr('transform','translate(' + position + ',0)')
                       .attr('d',function(d,i) {
-                        return "M" + 0 + ",-" +padding.top + "v"+ padding.top;
+                        return "M0,-" + 10 + "v"+ 10;
                         })
                       .style('stroke', '#cc6432')
                       .style('stroke-width',4.0)
                       .style('fill','#cc6432');
    } else {
       selection.append('path')
-                      .attr('class','y split_pointer')
-                      .attr('transform','translate(0,'+position+')')
+                      .attr('class', axis + ' split_pointer')
+                      .attr('transform','translate(0,' + position + ')')
                       .attr('d',function(d,i) {
-                        return "M" + "-" + padding.left + ",0h"+ padding.left;
+                        return "M0,0h"+ 10;
                         })
                       .style('stroke', '#cc6432')
-                      .style('stroke-width',4.0)
+                      .style('stroke-width', 4.0)
                       .style('fill','#cc6432');
    }
 
@@ -217,7 +229,7 @@ function appendNumericalSplitPointer(selection, axis, position) {
 
 function drawPartitionSpans() {
 
-    var pad = 10;
+    var pad =0;
     var double_pad = pad *2;
 
     var partition_splits = [
