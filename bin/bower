@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+
+var fs = require("fs");
+
+//cribbed from d3
+console.log(JSON.stringify({
+  "name": "carve",
+  "version": require("../package.json").version,
+  "main": "carve.js",
+  "scripts": [
+    "carve.js"
+  ],
+  "ignore": [
+    ".DS_Store",
+    ".git",
+    ".gitignore",
+    ".npmignore",
+    ".travis.yml",
+    ".bowerrc",
+    "Makefile",
+    "bin",
+    "component.json",
+    "index.js",
+    "lib",
+    "node_modules",
+    "package.json",
+    "src",
+    "test"
+  ]
+}, null, 2));
