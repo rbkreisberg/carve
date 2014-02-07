@@ -1,0 +1,16 @@
+{
+  "name": "carve",
+  "repo": "rbkreisberg/carve",
+  "description": "Flexible 2.5 dimensional plotting tool.",
+  "keywords": [
+    "visualization"
+  ],
+  "version": "0.0.9",
+  "main": "carve.js",
+  "scripts": [
+    "carve.js"
+  ],
+  "dependencies": {},
+  "development": {},
+  "license": "MIT"
+}
