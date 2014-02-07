@@ -130,8 +130,8 @@ var __ = {
   var cv = function(selection) {
     selection = cv.selection = d3.select(selection);
 
-    __.width = 800; //selection[0][0].clientWidth;
-    __.height = 600; //selection[0][0].clientHeight;
+    // __.width = 800; //selection[0][0].clientWidth;
+    // __.height = 600; //selection[0][0].clientHeight;
 
     setAxes();
 
@@ -141,8 +141,18 @@ var __ = {
                       .attr('class','cv_wrapper')
                     .append('svg')
                       .attr('class','cv')
-                      .attr('viewBox','0 0 ' + __.width + ' ' + __.height)
-                      .attr('preserveAspectRatio','xMinYMin meet');
+                      .attr('width', __.width)
+                      .attr('height', __.height);
+
+    cv.canvas = selection.select('div')
+                    .append('canvas')
+                    .attr('class','cv')
+                    .style('position','absolute')
+                    .attr('width',displayWidth())
+                    .attr('height',displayHeight())
+                    .style('left', (padding.left +__.margin.left) + 'px')
+                    .style('top', (padding.top + __.margin.top) + 'px')
+                    .style('z-index',-180);
 
     var defs = cv.svg.append("defs");
 

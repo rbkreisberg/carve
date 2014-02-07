@@ -115,10 +115,9 @@
     }).on("colorBy", setClassScales).on("splits", parseSplits).on("partition", setPartitions).on("axisLabel", updateAxisLabels).on("axisDomain", updateAxisDomains);
     var cv = function(selection) {
       selection = cv.selection = d3.select(selection);
-      __.width = 800;
-      __.height = 600;
       setAxes();
-      cv.svg = selection.append("div").attr("class", "cv_wrapper").append("svg").attr("class", "cv").attr("viewBox", "0 0 " + __.width + " " + __.height).attr("preserveAspectRatio", "xMinYMin meet");
+      cv.svg = selection.append("div").attr("class", "cv_wrapper").append("svg").attr("class", "cv").attr("width", __.width).attr("height", __.height);
+      cv.canvas = selection.select("div").append("canvas").attr("class", "cv").style("position", "absolute").attr("width", displayWidth()).attr("height", displayHeight()).style("left", padding.left + __.margin.left + "px").style("top", padding.top + __.margin.top + "px").style("z-index", -180);
       var defs = cv.svg.append("defs");
       defs.append("svg:clipPath").attr("id", "plot_clip").append("svg:rect").attr("id", "clip-rect").attr("x", "10").attr("y", "10").attr("width", plotWidth() - 10).attr("height", plotHeight() - 20);
       defs.append("svg:clipPath").attr("id", "viewbox_clip").append("svg:rect").attr("x", "0").attr("y", "0").attr("width", outerWidth()).attr("height", outerHeight());
