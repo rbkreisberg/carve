@@ -153,6 +153,67 @@ data_points
 
   }
 
+function drawMultipleBarchart_canvas(data_points) {
+  data_points
+    .transition()
+    .duration(update_duration)
+    .attr('fill-opacity',0.0);
+
+  var d = {};
+
+  var stacks = scales.x.domain().length * scales.y.domain().length * colorCategories.length;
+  var e = Array.apply(null, new Array((scales.y.domain().length))).map(function() { return 0;});
+  var f = new Array(stacks);
+
+  var numCategories = colorCategories.length;
+  var sums = {};
+  var categoryIndex= -1;
+  var max = {};
+
+  scales.x.domain().forEach( function(label) {
+      d[label] = {};
+      scales.y.domain().forEach( function(ylabel) {
+        d[label][ylabel] = {};
+        colorCategories.forEach( function(cat) {
+          d[label][ylabel][cat] = 0;
+          max[cat] = 0;
+        });
+      });
+  });
+
+//in case label is undefined
+  var colorBy = __.colorBy.label | "";
+
+  if (numCategories >= 1) {
+    data_array.forEach( function (point) {
+      sums[point[colorBy]]++;
+      if ( d[ point[ __.axisKey.x ] ] [  point[ __.axisKey.y ] ] [ String(point[colorBy]) ]++ >= max[point[colorBy]] ) {
+        max[point[colorBy]] = d[ point[ __.axisKey.x ] ] [  point[ __.axisKey.y ] ] [ String(point[colorBy]) ];
+      }
+    });
+  } else {
+    sums = { 'undefined' : data_array.length };
+  }
+  
+ for (var xKey in d) {
+  for (var yKey in d[xKey]) {
+    for (var colorByKey in d[xKey][yKey]) {
+      drawBar({
+        x: xKey,
+        y: yKey,
+        colorBy: colorByKey,
+        max: max[colorByKey]
+      }, d[xKey][yKey][colorByKey]/sums[colorByKey], ctx['data']);
+    }
+  }
+ }
+
+}
+
+function drawBar(parameters, data, ctx){
+
+}
+
 function drawMultipleBarchart(data_points) {
 
       var d = {};

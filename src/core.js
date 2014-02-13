@@ -113,6 +113,9 @@ var __ = {
       update_duration = 300,
       bottom_surface, label_surface, split_surface, data_surface, partition_surface; // groups for axes, brushes
 
+  var canvas = {},
+         ctx = {};
+
       // Splitting-related variables
   var splitStrokeColors = ['red','green','black'],
       split_data = {x: {}, y: {}};
@@ -143,8 +146,8 @@ var __ = {
                       .attr('class','cv')
                       .attr('width', __.width)
                       .attr('height', __.height);
-
-    cv.canvas = selection.select('div')
+    
+    canvas['data'] = selection.select('div')
                     .append('canvas')
                     .attr('class','cv')
                     .style('position','absolute')
@@ -152,7 +155,9 @@ var __ = {
                     .attr('height',displayHeight())
                     .style('left', (padding.left +__.margin.left) + 'px')
                     .style('top', (padding.top + __.margin.top) + 'px')
-                    .style('z-index',-180);
+                    .style('z-index',-180)[0][0];
+    
+    ctx['data'] = canvas['data'].getContext("2d");
 
     var defs = cv.svg.append("defs");
 
