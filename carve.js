@@ -104,6 +104,7 @@
       x: d3.svg.axis().orient("bottom"),
       y: d3.svg.axis().orient("left")
     }, update_duration = 300, bottom_surface, label_surface, split_surface, data_surface, partition_surface;
+    var canvas = {}, ctx = {};
     var splitStrokeColors = [ "red", "green", "black" ], split_data = {
       x: {},
       y: {}
@@ -117,7 +118,8 @@
       selection = cv.selection = d3.select(selection);
       setAxes();
       cv.svg = selection.append("div").attr("class", "cv_wrapper").append("svg").attr("class", "cv").attr("width", __.width).attr("height", __.height);
-      cv.canvas = selection.select("div").append("canvas").attr("class", "cv").style("position", "absolute").attr("width", displayWidth()).attr("height", displayHeight()).style("left", padding.left + __.margin.left + "px").style("top", padding.top + __.margin.top + "px").style("z-index", -180);
+      canvas["data"] = selection.select("div").append("canvas").attr("class", "cv").style("position", "absolute").attr("width", displayWidth()).attr("height", displayHeight()).style("left", padding.left + __.margin.left + "px").style("top", padding.top + __.margin.top + "px").style("z-index", -180)[0][0];
+      ctx["data"] = canvas["data"].getContext("2d");
       var defs = cv.svg.append("defs");
       defs.append("svg:clipPath").attr("id", "plot_clip").append("svg:rect").attr("id", "clip-rect").attr("x", "0").attr("y", "0").attr("width", displayWidth()).attr("height", displayHeight());
       defs.append("svg:clipPath").attr("id", "viewbox_clip").append("svg:rect").attr("x", "0").attr("y", "0").attr("width", outerWidth()).attr("height", outerHeight());
@@ -273,6 +275,55 @@
       var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data([], String);
       data_text.exit().remove();
     }
+    function drawMultipleBarchart_canvas(data_points) {
+      data_points.transition().duration(update_duration).attr("fill-opacity", 0);
+      var d = {};
+      var stacks = scales.x.domain().length * scales.y.domain().length * colorCategories.length;
+      var e = Array.apply(null, new Array(scales.y.domain().length)).map(function() {
+        return 0;
+      });
+      var f = new Array(stacks);
+      var numCategories = colorCategories.length;
+      var sums = {};
+      var categoryIndex = -1;
+      var max = {};
+      scales.x.domain().forEach(function(label) {
+        d[label] = {};
+        scales.y.domain().forEach(function(ylabel) {
+          d[label][ylabel] = {};
+          colorCategories.forEach(function(cat) {
+            d[label][ylabel][cat] = 0;
+            max[cat] = 0;
+          });
+        });
+      });
+      var colorBy = __.colorBy.label | "";
+      if (numCategories >= 1) {
+        data_array.forEach(function(point) {
+          sums[point[colorBy]]++;
+          if (d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])]++ >= max[point[colorBy]]) {
+            max[point[colorBy]] = d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])];
+          }
+        });
+      } else {
+        sums = {
+          undefined: data_array.length
+        };
+      }
+      for (var xKey in d) {
+        for (var yKey in d[xKey]) {
+          for (var colorByKey in d[xKey][yKey]) {
+            drawBar({
+              x: xKey,
+              y: yKey,
+              colorBy: colorByKey,
+              max: max[colorByKey]
+            }, d[xKey][yKey][colorByKey] / sums[colorByKey], ctx["data"]);
+          }
+        }
+      }
+    }
+    function drawBar(parameters, data, ctx) {}
     function drawMultipleBarchart(data_points) {
       var d = {};
       scales.x.domain().forEach(function(label) {
