@@ -560,6 +560,10 @@
       if (_.isArray(__.colorBy.colors) && __.colorBy.colors.length) {
         pointColors = __.colorBy.colors;
       }
+      if (obj && obj.value.id && obj.value.label === undefined) {
+        __.colorBy.label = obj.value.id;
+        obj.value.label = obj.value.id;
+      }
       if (obj && obj.value.label === obj.previous.label && _.difference(obj.value.list, obj.previous.list).length === 0) {
         return;
       }
@@ -1011,6 +1015,6 @@
     };
     return kde;
   };
-  carve.version = "0.1.1";
+  carve.version = "0.1.2";
   return carve;
 });

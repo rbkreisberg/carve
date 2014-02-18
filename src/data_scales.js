@@ -157,6 +157,11 @@ function setClassScales(obj) {
 
   if ( _.isArray(__.colorBy.colors) && __.colorBy.colors.length ) { pointColors = __.colorBy.colors; }
  
+  if (obj && obj.value.id && obj.value.label === undefined) {
+        __.colorBy.label = obj.value.id;
+        obj.value.label = obj.value.id;
+  }
+  
   //if the class hasn't changed, don't modify it. 
   if ( obj && 
     obj.value.label === obj.previous.label && 
