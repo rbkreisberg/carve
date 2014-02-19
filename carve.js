@@ -349,14 +349,14 @@
         selector.style("fill", function(bar) {
           return __.colorFn(bar["colorBy"]);
         }).attr("d", nullBarPath).attr("transform", function(bar) {
-          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
+          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand - 1) + ")";
         });
       }
       function transitionBar(selector) {
         selector.style("fill", function(bar) {
           return __.colorFn(bar["colorBy"]);
         }).attr("d", barPath).attr("transform", function(bar) {
-          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
+          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand - 1) + ")";
         });
       }
       function vertical_offset(point) {

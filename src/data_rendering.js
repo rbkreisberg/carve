@@ -267,7 +267,7 @@ var bars = [];
       .attr('d',nullBarPath)
       .attr('transform', function(bar) { return 'translate(' +
                       (scales.x(bar.x) + category_offset(String(bar.colorBy)) ) +
-                        ',' + (scales.y(bar.y) + halfBand) + ')'; });
+                        ',' + (scales.y(bar.y) + halfBand -1) + ')'; });
   }
 
   function transitionBar(selector) {
@@ -276,7 +276,7 @@ var bars = [];
       .attr('d',barPath)
       .attr('transform', function(bar) { return 'translate(' +
                       (scales.x(bar.x) + category_offset(String(bar.colorBy)) ) +
-                        ',' + (scales.y(bar.y) + halfBand) + ')'; });
+                        ',' + (scales.y(bar.y) + halfBand -1) + ')'; });
   }
 
   function vertical_offset( point ) { return barscale(point[3]); }
