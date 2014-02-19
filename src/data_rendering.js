@@ -208,7 +208,7 @@ function drawMultipleBarchart_summarized(data_points) {
     sums = { 'undefined' : data_array.length };
   }
   
-  var bars = [];
+var bars = [];
  for (var xKey in d) {
   for (var yKey in d[xKey]) {
     for (var colorByKey in d[xKey][yKey]) {
@@ -224,8 +224,8 @@ function drawMultipleBarchart_summarized(data_points) {
 
  var barscale = d3.scale.linear().domain([0,1.0]).rangeRound([0, band]);
 
-  var bar_elements = data_surface.select('.data').selectAll('.bar')
-    .data(bars, JSON.stringify);
+  var bar_elements = data_surface.select('.bar_surface').selectAll('.bar')
+    .data(bars, function(bar) { return JSON.stringify(_.pick(bar,'x','y','colorBy')); });
 
     bar_elements
     .exit()
@@ -240,7 +240,7 @@ function drawMultipleBarchart_summarized(data_points) {
     bar_elements
       .transition()
       .duration(update_duration)
-      .attr('d',barPath);
+      .call(transitionBar);
 
   function category_offset (label) {
         if (label === "undefined") { label = undefined; }
@@ -257,7 +257,7 @@ function drawMultipleBarchart_summarized(data_points) {
 
   function barPath(bar) {
     return 'M 0 0 L '+ halfBarWidth +' 0 L ' +
-                  halfBarWidth +' -' + barscale( bar.count / sums[bar.colorBy] ) + ' L -'+halfBarWidth +' -' +
+                  halfBarWidth +' -' + barscale( bar.count / sums[bar.colorBy] || 0 ) + ' L -'+halfBarWidth +' -' +
                    barscale( bar.count / sums[bar.colorBy] ) + ' L -'+halfBarWidth+' 0 L 0 0';
   }
 
@@ -270,20 +270,70 @@ function drawMultipleBarchart_summarized(data_points) {
                         ',' + (scales.y(bar.y) + halfBand) + ')'; });
   }
 
+  function transitionBar(selector) {
+    selector
+      .style('fill',function(bar) { return __.colorFn(bar['colorBy']); })
+      .attr('d',barPath)
+      .attr('transform', function(bar) { return 'translate(' +
+                      (scales.x(bar.x) + category_offset(String(bar.colorBy)) ) +
+                        ',' + (scales.y(bar.y) + halfBand) + ')'; });
+  }
+
+  function vertical_offset( point ) { return barscale(point[3]); }
+  function text_fill( point ) { return addOffset( point ) ? '#fff' : '#000'; }
+  function text_stroke( point ) { return addOffset( point ) ? '#000' : 'none'; }
+  function addOffset( point ) { return vertical_offset(point) > halfBand; }
+
+  function text_styling( selector, point ) {
+        selector
+          .style('fill', text_fill )
+          .style('visibility', function(point) { return + point[3] <= 0 ? 'hidden' : null; } )
+          .attr('transform', function(point) { return 'translate(' +
+              (scales.x(point[0]) + category_offset( point[2] )) +
+                ',' + (scales.y(point[1]) + halfBand - vertical_offset(point) +
+                (addOffset(point) * 20) ) + ')'; } );
+  }
+
+  var top_3s = _.map(bars, function(bar) {
+          return [ bar.x, bar.y, bar.colorBy, bar.count / sums[bar.colorBy] || 0 ];
+        });
+  var format = d3.format(".2f");
+
+  var data_text = data_surface.select('.data_labels')
+              .selectAll('.data_totals')
+              .data(top_3s , function(bar) { return bar[0] + '_' + bar[1] + '-' + bar[2]; } );
+              
+  data_text.enter()
+            .append("text")
+            .style('text-anchor','middle')
+            .attr('class','data_totals')
+            .attr('transform', function(point) {
+                  return 'translate(' +
+                      (scales.x(point[0]) + category_offset( point[2] )) +
+                        ',' + scales.y(point[1]) + ')';
+            })
+            .text(function(point){ return format(point[3]);});
+
+  data_text.transition()
+            .duration(update_duration)
+            .call(text_styling)
+            .text(function(point){ return format(point[3]);});
+
+  data_text.exit().remove();
 }
 
 function drawMultipleBarchart(data_points) {
 
-      var d = {};
-            scales.x.domain().forEach( function(label) {
-              d[label] = {};
-              scales.y.domain().forEach( function(ylabel) {
-                d[label][ylabel] = {};
-                colorCategories.forEach( function(cat) {
-                  d[label][ylabel][cat] = 0;
-                });
-              });
-            });
+    var d = {};
+  scales.x.domain().forEach( function(label) {
+    d[label] = {};
+    scales.y.domain().forEach( function(ylabel) {
+      d[label][ylabel] = {};
+      colorCategories.forEach( function(cat) {
+        d[label][ylabel][cat] = 0;
+      });
+    });
+  });
 
       var stacks = scales.x.domain().length * scales.y.domain().length * colorCategories.length;
       var e = Array.apply(null, new Array((scales.y.domain().length))).map(function() { return 0;});
@@ -518,6 +568,10 @@ function clearDataPoints() {
   data_points.exit().remove();
 }
 
+function clearBarPlots() {
+  data_surface.select('.bar_surface').selectAll('.bar').data([],String).exit().remove();
+}
+
 function clearDataLabels() {
   var data_text = data_surface.select('.data_labels')
                     .selectAll('.data_totals')
@@ -532,7 +586,10 @@ function clearKDE() {
 }
 
 function cleanDisplay() {
-  if ( __.dataType['mix'] !== 'cc' ) clearDataLabels();
+  if ( __.dataType['mix'] !== 'cc' ) {
+    clearDataLabels();
+    clearBarPlots();
+  }
   if (__.dataType['mix'] !== 'nc' && __.dataType['mix'] !== 'cn' ) clearKDE();
   if (__.dataType['mix'] !== 'nn' && __.dataType['mix'] !== 'cc' ) clearDataPoints();
 }

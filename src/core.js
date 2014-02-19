@@ -207,6 +207,7 @@ var __ = {
                      .attr('clip-path','url(#plot_clip)');
 
     data_surface.append('g').attr('class','kde_surface');
+    data_surface.append('g').attr('class','bar_surface');
     data_surface.append('g').attr('class','data');
     data_surface.append('g').attr('class','data_labels');
 
@@ -245,10 +246,11 @@ cv.render = function() {
 
   parseData();
 
+  if (data_array.length <= 0)  { return; }
+
+  drawData();
+  
   if (axisFn["y"].scale() !== undefined) drawAxes();
-
-  if (data_array.length)  drawData();
-
   if (_.isObject(split_data) && __.enableCarving ) {
     clearAllSplitSelections();
     clearAllSplitPointers();

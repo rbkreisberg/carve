@@ -131,6 +131,7 @@
       split_surface = top_surface.append("g").attr("transform", "translate(10,0)").attr("class", "split_surface");
       data_surface = top_surface.append("g").attr("transform", "translate(10,10)").attr("clip-path", "url(#plot_clip)");
       data_surface.append("g").attr("class", "kde_surface");
+      data_surface.append("g").attr("class", "bar_surface");
       data_surface.append("g").attr("class", "data");
       data_surface.append("g").attr("class", "data_labels");
       setClassScales();
@@ -162,8 +163,11 @@
     }
     cv.render = function() {
       parseData();
+      if (data_array.length <= 0) {
+        return;
+      }
+      drawData();
       if (axisFn["y"].scale() !== undefined) drawAxes();
-      if (data_array.length) drawData();
       if (_.isObject(split_data) && __.enableCarving) {
         clearAllSplitSelections();
         clearAllSplitPointers();
@@ -322,10 +326,12 @@
         }
       }
       var barscale = d3.scale.linear().domain([ 0, 1 ]).rangeRound([ 0, band ]);
-      var bar_elements = data_surface.select(".data").selectAll(".bar").data(bars, JSON.stringify);
+      var bar_elements = data_surface.select(".bar_surface").selectAll(".bar").data(bars, function(bar) {
+        return JSON.stringify(_.pick(bar, "x", "y", "colorBy"));
+      });
       bar_elements.exit().remove();
       bar_elements.enter().append("path").attr("class", "bar").call(initBar);
-      bar_elements.transition().duration(update_duration).attr("d", barPath);
+      bar_elements.transition().duration(update_duration).call(transitionBar);
       function category_offset(label) {
         if (label === "undefined") {
           label = undefined;
@@ -337,7 +343,7 @@
         return "M 0 0 L " + halfBarWidth + " 0 L " + halfBarWidth + " 0 L -" + halfBarWidth + " 0 L -" + halfBarWidth + " 0 L 0 0";
       }
       function barPath(bar) {
-        return "M 0 0 L " + halfBarWidth + " 0 L " + halfBarWidth + " -" + barscale(bar.count / sums[bar.colorBy]) + " L -" + halfBarWidth + " -" + barscale(bar.count / sums[bar.colorBy]) + " L -" + halfBarWidth + " 0 L 0 0";
+        return "M 0 0 L " + halfBarWidth + " 0 L " + halfBarWidth + " -" + barscale(bar.count / sums[bar.colorBy] || 0) + " L -" + halfBarWidth + " -" + barscale(bar.count / sums[bar.colorBy]) + " L -" + halfBarWidth + " 0 L 0 0";
       }
       function initBar(selector) {
         selector.style("fill", function(bar) {
@@ -346,6 +352,48 @@
           return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
         });
       }
+      function transitionBar(selector) {
+        selector.style("fill", function(bar) {
+          return __.colorFn(bar["colorBy"]);
+        }).attr("d", barPath).attr("transform", function(bar) {
+          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
+        });
+      }
+      function vertical_offset(point) {
+        return barscale(point[3]);
+      }
+      function text_fill(point) {
+        return addOffset(point) ? "#fff" : "#000";
+      }
+      function text_stroke(point) {
+        return addOffset(point) ? "#000" : "none";
+      }
+      function addOffset(point) {
+        return vertical_offset(point) > halfBand;
+      }
+      function text_styling(selector, point) {
+        selector.style("fill", text_fill).style("visibility", function(point) {
+          return +point[3] <= 0 ? "hidden" : null;
+        }).attr("transform", function(point) {
+          return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + (scales.y(point[1]) + halfBand - vertical_offset(point) + addOffset(point) * 20) + ")";
+        });
+      }
+      var top_3s = _.map(bars, function(bar) {
+        return [ bar.x, bar.y, bar.colorBy, bar.count / sums[bar.colorBy] || 0 ];
+      });
+      var format = d3.format(".2f");
+      var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data(top_3s, function(bar) {
+        return bar[0] + "_" + bar[1] + "-" + bar[2];
+      });
+      data_text.enter().append("text").style("text-anchor", "middle").attr("class", "data_totals").attr("transform", function(point) {
+        return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + scales.y(point[1]) + ")";
+      }).text(function(point) {
+        return format(point[3]);
+      });
+      data_text.transition().duration(update_duration).call(text_styling).text(function(point) {
+        return format(point[3]);
+      });
+      data_text.exit().remove();
     }
     function drawMultipleBarchart(data_points) {
       var d = {};
@@ -496,6 +544,9 @@
       var data_points = data_surface.select(".data").selectAll(".data_point").data([], String);
       data_points.exit().remove();
     }
+    function clearBarPlots() {
+      data_surface.select(".bar_surface").selectAll(".bar").data([], String).exit().remove();
+    }
     function clearDataLabels() {
       var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data([], String);
       data_text.exit().remove();
@@ -505,7 +556,10 @@
       kde.exit().remove();
     }
     function cleanDisplay() {
-      if (__.dataType["mix"] !== "cc") clearDataLabels();
+      if (__.dataType["mix"] !== "cc") {
+        clearDataLabels();
+        clearBarPlots();
+      }
       if (__.dataType["mix"] !== "nc" && __.dataType["mix"] !== "cn") clearKDE();
       if (__.dataType["mix"] !== "nn" && __.dataType["mix"] !== "cc") clearDataPoints();
     }
