@@ -275,6 +275,69 @@
       var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data([], String);
       data_text.exit().remove();
     }
+    function drawMultipleBarchart_summarized(data_points) {
+      data_points.transition().duration(update_duration).attr("fill-opacity", 0);
+      var numCategories = colorCategories.length;
+      var height_axis = "y", extent = scales[height_axis].range(), band = (scales[height_axis].rangeExtent()[1] - scales[height_axis].rangeExtent()[0]) / extent.length, halfBand = band / 2;
+      var width_axis = "x", width_extent = scales[width_axis].range(), width_band = (scales[width_axis].rangeExtent()[1] - scales[width_axis].rangeExtent()[0]) / width_extent.length;
+      var barWidth = width_band / 2 / numCategories, halfBarWidth = barWidth / 2, barSpacing = barWidth / numCategories, last_index = numCategories - 1;
+      var d = {};
+      var sums = {};
+      var categoryIndex = -1;
+      var max = {};
+      scales.x.domain().forEach(function(label) {
+        d[label] = {};
+        scales.y.domain().forEach(function(ylabel) {
+          d[label][ylabel] = {};
+          colorCategories.forEach(function(cat) {
+            d[label][ylabel][cat] = 0;
+            max[cat] = 0;
+          });
+        });
+      });
+      var colorBy = __.colorBy.label || "";
+      if (numCategories >= 1) {
+        data_array.forEach(function(point) {
+          sums[point[colorBy]]++;
+          if (d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])]++ >= max[point[colorBy]]) {
+            max[point[colorBy]] = d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])];
+          }
+        });
+      } else {
+        sums = {
+          undefined: data_array.length
+        };
+      }
+      var bars = [];
+      for (var xKey in d) {
+        for (var yKey in d[xKey]) {
+          for (var colorByKey in d[xKey][yKey]) {
+            bars.push({
+              x: xKey,
+              y: yKey,
+              colorBy: colorByKey,
+              count: d[xKey][yKey][colorByKey]
+            });
+          }
+        }
+      }
+      var bar_elements = data_surface.select(".data").selectAll(".bar").data(bars, JSON.stringify);
+      bar_elements.enter().append("path").attr("class", "bar");
+      bar_elements.call(drawBar);
+      function category_offset(label) {
+        if (label === "undefined") {
+          label = undefined;
+        }
+        var position = colorCategories.indexOf(label), midpoint = last_index / 2, offset = (position - midpoint) * (barWidth + barSpacing * last_index);
+        return Math.round(offset);
+      }
+      function drawBar(selector) {
+        var barHeight = 100;
+        selector.attr("x", 0).attr("y", 0).attr("height", -100).style("fill", "#000").attr("d", "M 0 0 L " + halfBarWidth + " 0 L " + halfBarWidth + " -" + barHeight + " L -" + halfBarWidth + " -" + barHeight + " L -" + halfBarWidth + " 0 L 0 0").attr("transform", function(bar) {
+          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
+        });
+      }
+    }
     function drawMultipleBarchart(data_points) {
       var d = {};
       scales.x.domain().forEach(function(label) {
@@ -448,7 +511,7 @@
         drawScatterplot(data_points);
       } else if (__.dataType["x"] == "n" ^ __.dataType["y"] == "n") {
         drawMultipleKDE(data_points);
-      } else if (__.dataType["mix"] === "cc") drawMultipleBarchart(data_points);
+      } else if (__.dataType["mix"] === "cc") drawMultipleBarchart_summarized(data_points);
     }
     function isCategorical(vals) {
       if (!_.isArray(vals)) return false;
