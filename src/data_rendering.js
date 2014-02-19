@@ -189,7 +189,7 @@ function drawMultipleBarchart_summarized(data_points) {
         d[label][ylabel] = {};
         colorCategories.forEach( function(cat) {
           d[label][ylabel][cat] = 0;
-          max[cat] = 0;
+          max[cat] = sums[cat] = 0;
         });
       });
   });
@@ -222,15 +222,25 @@ function drawMultipleBarchart_summarized(data_points) {
   }
  }
 
+ var barscale = d3.scale.linear().domain([0,1.0]).rangeRound([0, band]);
+
   var bar_elements = data_surface.select('.data').selectAll('.bar')
     .data(bars, JSON.stringify);
 
     bar_elements
+    .exit()
+    .remove();
+
+    bar_elements
       .enter()
       .append('path')
-      .attr('class','bar');
+      .attr('class','bar')
+      .call(initBar);
     
-    bar_elements.call(drawBar);
+    bar_elements
+      .transition()
+      .duration(update_duration)
+      .attr('d',barPath);
 
   function category_offset (label) {
         if (label === "undefined") { label = undefined; }
@@ -240,20 +250,24 @@ function drawMultipleBarchart_summarized(data_points) {
         return Math.round(offset);
   }
 
-  function drawBar(selector) {
-    var barHeight = 100;
+  function nullBarPath() {
+    return 'M 0 0 L ' + halfBarWidth + ' 0 L ' +
+                  halfBarWidth +' 0 L -' + halfBarWidth + ' 0 L -' + halfBarWidth + ' 0 L 0 0';
+  }
+
+  function barPath(bar) {
+    return 'M 0 0 L '+ halfBarWidth +' 0 L ' +
+                  halfBarWidth +' -' + barscale( bar.count / sums[bar.colorBy] ) + ' L -'+halfBarWidth +' -' +
+                   barscale( bar.count / sums[bar.colorBy] ) + ' L -'+halfBarWidth+' 0 L 0 0';
+  }
+
+  function initBar(selector) {
     selector
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('height', -100)
-      .style('fill','#000')
-      .attr('d', 'M 0 0 L '+ halfBarWidth +' 0 L ' +
-                  halfBarWidth +' -' + barHeight + ' L -'+halfBarWidth +' -' +
-                  barHeight + ' L -'+halfBarWidth+' 0 L 0 0' )
+      .style('fill',function(bar) { return __.colorFn(bar['colorBy']); })
+      .attr('d',nullBarPath)
       .attr('transform', function(bar) { return 'translate(' +
                       (scales.x(bar.x) + category_offset(String(bar.colorBy)) ) +
-                        ',' +
-                      (scales.y(bar.y) + halfBand) + ')'; });
+                        ',' + (scales.y(bar.y) + halfBand) + ')'; });
   }
 
 }
