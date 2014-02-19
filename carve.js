@@ -287,15 +287,13 @@
       var barWidth = width_band / 2 / numCategories, halfBarWidth = barWidth / 2, barSpacing = barWidth / numCategories, last_index = numCategories - 1;
       var d = {};
       var sums = {};
-      var categoryIndex = -1;
-      var max = {};
       scales.x.domain().forEach(function(label) {
         d[label] = {};
         scales.y.domain().forEach(function(ylabel) {
           d[label][ylabel] = {};
           colorCategories.forEach(function(cat) {
             d[label][ylabel][cat] = 0;
-            max[cat] = sums[cat] = 0;
+            sums[cat] = 0;
           });
         });
       });
@@ -303,9 +301,7 @@
       if (numCategories >= 1) {
         data_array.forEach(function(point) {
           sums[point[colorBy]]++;
-          if (d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])]++ >= max[point[colorBy]]) {
-            max[point[colorBy]] = d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])];
-          }
+          d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[colorBy])]++;
         });
       } else {
         sums = {
@@ -375,7 +371,7 @@
         selector.style("fill", text_fill).style("visibility", function(point) {
           return +point[3] <= 0 ? "hidden" : null;
         }).attr("transform", function(point) {
-          return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + (scales.y(point[1]) + halfBand - vertical_offset(point) + addOffset(point) * 20) + ")";
+          return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + (scales.y(point[1]) + halfBand - vertical_offset(point) + addOffset(point) * 16 - 2) + ")";
         });
       }
       var top_3s = _.map(bars, function(bar) {
@@ -383,7 +379,7 @@
       });
       var format = d3.format(".2f");
       var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data(top_3s, function(bar) {
-        return bar[0] + "_" + bar[1] + "-" + bar[2];
+        return bar[0] + "_" + bar[1] + "_" + bar[2];
       });
       data_text.enter().append("text").style("text-anchor", "middle").attr("class", "data_totals").attr("transform", function(point) {
         return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + scales.y(point[1]) + ")";
@@ -393,81 +389,6 @@
       data_text.transition().duration(update_duration).call(text_styling).text(function(point) {
         return format(point[3]);
       });
-      data_text.exit().remove();
-    }
-    function drawMultipleBarchart(data_points) {
-      var d = {};
-      scales.x.domain().forEach(function(label) {
-        d[label] = {};
-        scales.y.domain().forEach(function(ylabel) {
-          d[label][ylabel] = {};
-          colorCategories.forEach(function(cat) {
-            d[label][ylabel][cat] = 0;
-          });
-        });
-      });
-      var stacks = scales.x.domain().length * scales.y.domain().length * colorCategories.length;
-      var e = Array.apply(null, new Array(scales.y.domain().length)).map(function() {
-        return 0;
-      });
-      var f = new Array(stacks);
-      data_array.forEach(function(point, index) {
-        e[index] = d[point[__.axisKey.x]][point[__.axisKey.y]][String(point[__.colorBy.label])]++;
-      });
-      var i = stacks - 1;
-      d3.keys(d).forEach(function(k1) {
-        d3.keys(d[k1]).forEach(function(k2) {
-          d3.keys(d[k1][k2]).forEach(function(k3) {
-            f[i--] = [ k1, k2, k3, d[k1][k2][k3] ];
-          });
-        });
-      });
-      var height_axis = "y", extent = scales[height_axis].range(), band = (scales[height_axis].rangeExtent()[1] - scales[height_axis].rangeExtent()[0]) / extent.length, halfBand = band / 2;
-      var width_axis = "x", width_extent = scales[width_axis].range(), width_band = (scales[width_axis].rangeExtent()[1] - scales[width_axis].rangeExtent()[0]) / width_extent.length;
-      var barHeight = (band - 25) / (d3.max(e) + 1), halfBandfBarHeight = barHeight / 2, barWidth = width_band / 2 / colorCategories.length, halfBarWidth = barWidth / 2, barSpacing = barWidth / colorCategories.length, last_index = colorCategories.length - 1;
-      function category_offset(label) {
-        if (label === "undefined") {
-          label = undefined;
-        }
-        var position = colorCategories.indexOf(label), midpoint = last_index / 2, offset = (position - midpoint) * (barWidth + barSpacing * last_index);
-        return Math.round(offset);
-      }
-      data_points.style("fill-opacity", .8).call(colorDataPoint).transition().duration(update_duration).attr("d", "M 0 0 L " + halfBarWidth + " 0 L " + halfBarWidth + " -" + barHeight + " L -" + halfBarWidth + " -" + barHeight + " L -" + halfBarWidth + " 0 L 0 0").attr("transform", function(point, i) {
-        return "translate(" + (scales.x(point[__.axisKey.x]) + category_offset(String(point[__.colorBy.label]))) + "," + (scales.y(point[__.axisKey.y]) + halfBand - e[i] * barHeight) + ")";
-      });
-      function vertical_offset(point) {
-        return point[3] * barHeight;
-      }
-      function text_fill(point) {
-        return addOffset(point) ? "#fff" : "#000";
-      }
-      function text_stroke(point) {
-        return addOffset(point) ? "#000" : "none";
-      }
-      function addOffset(point) {
-        return false;
-      }
-      function text_styling(selector, point) {
-        selector.style("fill", text_fill).style("visibility", function(point) {
-          return +point[3] <= 0 ? "hidden" : null;
-        }).attr("transform", function(point) {
-          return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + (scales.y(point[1]) + halfBand - vertical_offset(point) + addOffset(point) * 20) + ")";
-        });
-      }
-      var groups = _.groupBy(f, function(p) {
-        return p[0] + "_" + p[1];
-      }), top_3s = _.map(groups, function(group) {
-        return _.chain(group).sortBy(function(g) {
-          return g[3];
-        }).last(3).value();
-      }), all_labels = _.flatten(top_3s, true);
-      var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data(all_labels, String);
-      data_text.enter().append("text").attr("class", "data_totals").style("text-anchor", "middle").text(function(point, i) {
-        return point[3];
-      }).attr("transform", function(point) {
-        return "translate(" + (scales.x(point[0]) + category_offset(point[2])) + "," + scales.y(point[1]) + ")";
-      });
-      data_text.transition().duration(update_duration).call(text_styling);
       data_text.exit().remove();
     }
     function drawMultipleKDE() {
