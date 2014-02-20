@@ -153,7 +153,7 @@ data_points
 
   }
 
-function drawMultipleBarchart_summarized(data_points) {
+function drawMultipleBarchart(data_points) {
 
     //fade out data points
     data_points
@@ -495,6 +495,6 @@ function drawData() {
   else if ( ( __.dataType['x'] == 'n') ^ ( __.dataType['y'] =='n' ) ) {
     drawMultipleKDE(data_points);
   }
-  else if (__.dataType['mix'] === 'cc') drawMultipleBarchart_summarized(data_points);
+  else if (__.dataType['mix'] === 'cc') drawMultipleBarchart(data_points);
 
 }
