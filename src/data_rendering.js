@@ -106,6 +106,16 @@ function updateAxes() {
   });
 }
 
+function clearAxes() {
+   ['y','x'].forEach( function(axis) {
+      var axis = label_surface.select('.' + axis + 'axis');
+      axis.selectAll('.tick text').remove();
+      axis.selectAll('.categorical_ticks').remove();
+
+      axis.selectAll('.axis_label').text('');
+  });
+}
+
 function mapCategoricalValues(value, axis) {
   if (!(axis in __.axisValueDictionary)) return value;
     if (value in __.axisValueDictionary[axis]) { return __.axisValueDictionary[axis][value]; }
