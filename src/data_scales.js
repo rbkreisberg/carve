@@ -24,7 +24,7 @@ function isFinite(array) {  // check if there's a terrible number (Infinity, NaN
 function parseData() {
   if (__.data.length < 1) {
       console.log('Empty data array.  Nothing to plot.');
-      return;
+      return { error: true };
   }
 
   var element_properties = d3.keys(__.data[0]);
@@ -40,10 +40,11 @@ function parseData() {
     setDataScales(xVals, yVals);
     
   } else {
-    console.error('x or y coordinates not packaged in data');
+    console.warn('x or y coordinates not packaged in data');
+    return { error: true };
   }
 
-  return;
+  return { error: false };
 }
 
 function scaleRangeValues( values, scale) {

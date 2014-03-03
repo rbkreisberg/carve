@@ -242,11 +242,15 @@ var __ = {
     });
   }
 
-cv.render = function() {
+cv.render = function(callback) {
 
-  parseData();
-
-  if (data_array.length <= 0)  { return; }
+  var err = parseData();
+  if ( (err && err.error && err.error === true) || data_array.length <= 0) {
+    if (_.isFunction(callback) ) {
+      callback.call(this, err);
+    }
+    return this;
+  }
 
   drawData();
   
@@ -260,6 +264,9 @@ cv.render = function() {
 
   __.clear = false;
 
+  if (_.isFunction(callback) ) {
+      callback.call(this, err);
+  }
   return this;
 };
 
@@ -278,4 +285,12 @@ function reRender() {
   if (__.enableCarving === false) { return; }
   drawSplits();
   drawPartitionSpans();
+}
+
+cv.clear = function() {
+  clearDataPoints();
+  clearBarPlots();
+  clearDataLabels();
+  clearKDE();
+  clearAxes();
 }
