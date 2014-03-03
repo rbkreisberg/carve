@@ -161,10 +161,13 @@
         };
       });
     }
-    cv.render = function() {
-      parseData();
-      if (data_array.length <= 0) {
-        return;
+    cv.render = function(callback) {
+      var err = parseData();
+      if (err && err.error && err.error === true || data_array.length <= 0) {
+        if (_.isFunction(callback)) {
+          callback.call(this, err);
+        }
+        return this;
       }
       drawData();
       if (axisFn["y"].scale() !== undefined) drawAxes();
@@ -175,6 +178,9 @@
         drawSplitLabel();
       }
       __.clear = false;
+      if (_.isFunction(callback)) {
+        callback.call(this, err);
+      }
       return this;
     };
     cv.resize = function() {
@@ -190,6 +196,13 @@
       drawSplits();
       drawPartitionSpans();
     }
+    cv.clear = function() {
+      clearDataPoints();
+      clearBarPlots();
+      clearDataLabels();
+      clearKDE();
+      clearAxes();
+    };
     function drawAxes() {
       var textpaths = {
         x: "M 0 " + (plotHeight() + 28) + " L " + plotWidth() + " " + (plotHeight() + 28),
@@ -252,6 +265,14 @@
         }
         axisEl.select(".ticks").transition().duration(update_duration).call(axisFn[axis].scale(axisScales[axis]));
         adjustTicks(axis);
+      });
+    }
+    function clearAxes() {
+      [ "y", "x" ].forEach(function(axis) {
+        var axis = label_surface.select("." + axis + "axis");
+        axis.selectAll(".tick text").remove();
+        axis.selectAll(".categorical_ticks").remove();
+        axis.selectAll(".axis_label").text("");
       });
     }
     function mapCategoricalValues(value, axis) {
@@ -517,7 +538,9 @@
     function parseData() {
       if (__.data.length < 1) {
         console.log("Empty data array.  Nothing to plot.");
-        return;
+        return {
+          error: true
+        };
       }
       var element_properties = d3.keys(__.data[0]);
       if (_.contains(element_properties, __.axisKey.x) && _.contains(element_properties, __.axisKey.y)) {
@@ -527,9 +550,14 @@
         data_array = __.data;
         setDataScales(xVals, yVals);
       } else {
-        console.error("x or y coordinates not packaged in data");
+        console.warn("x or y coordinates not packaged in data");
+        return {
+          error: true
+        };
       }
-      return;
+      return {
+        error: false
+      };
     }
     function scaleRangeValues(values, scale) {
       var low = values[0], high = values[1], width = high - low || 1, margin = width * (scale - 1);
@@ -1062,6 +1090,6 @@
     };
     return kde;
   };
-  carve.version = "0.1.3";
+  carve.version = "0.1.4";
   return carve;
 });

@@ -5,7 +5,7 @@
   "keywords": [
     "visualization"
   ],
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "carve.js",
   "scripts": [
     "carve.js"
