@@ -1,11 +1,7 @@
 // data rendering
 
 function drawAxes() {
-  var textpaths = {
-                  "x" : 'M 0 ' + (plotHeight()+28) + ' L '+ plotWidth() + ' ' + (plotHeight()+28),
-                  "y" : 'M ' + 0 + ' ' + plotHeight() + ' L ' + 0 + ' 0'
-                },
-      axis_transform = {
+  var axis_transform = {
                   "x" : 'translate(' + 0 + ',' + displayHeight() + ')',
                   "y" : 'translate(0, 0)'
                 },
@@ -57,7 +53,7 @@ function adjustTicks(axis) {
     var ordinal = axisEl.append('g').attr('class','categorical_ticks'),
         ticks = scales[axis].range();
 
-    axisFn[axis].tickSize(tickSizes[axis][0]);
+    axisFn[axis].tickSize(tickSizes[axis][0]).tickPadding(10);
 
     var extent  = scales[axis].range(),
       band = ((scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / extent.length),
@@ -68,24 +64,24 @@ function adjustTicks(axis) {
                 .data(ticks);
     
     if ( axis == 'y' ) {
-    lines.enter()
-      .append('line')
-      .style('stroke', '#888')
-      .style('stroke-width', '2px')
-      .attr('x1', 0)
-      .attr('x2', displayWidth())
-      .attr('y1', function(point) { return point - halfBand; } )
-      .attr('y2', function(point) { return point - halfBand; } );
+      lines.enter()
+        .append('line')
+        .style('stroke', '#888')
+        .style('stroke-width', '2px')
+        .attr('x1', 0)
+        .attr('x2', displayWidth())
+        .attr('y1', function(point) { return point - halfBand; } )
+        .attr('y2', function(point) { return point - halfBand; } );
     }
     else {
-    lines.enter()
-      .append('line')
-      .style('stroke', '#888')
-      .style('stroke-width', '2px')
-      .attr('x1',function(point) { return point + halfBand; })
-      .attr('x2', function(point) { return point + halfBand; })
-      .attr('y1', 0 )
-      .attr('y2', displayHeight());
+      lines.enter()
+        .append('line')
+        .style('stroke', '#888')
+        .style('stroke-width', '2px')
+        .attr('x1',function(point) { return point + halfBand; })
+        .attr('x2', function(point) { return point + halfBand; })
+        .attr('y1', 0 )
+        .attr('y2', displayHeight());
     }
     
   } else axisFn[axis].tickSize(tickSizes[axis][1]);
@@ -137,6 +133,32 @@ function updateAxisDomains() {
      __.axisDomain.x = _.isArray(__.axisDomain.x) ? __.axisDomain.x : '';
 
   }
+
+function drawScatterplot_canvas(data_points) {
+
+data_points
+    .attr('d',symbolFunction(0).size(symbolSize)())
+    .style('fill-opacity', function(point) {
+        return _.isUndefined(point.splits_on_x) ?
+          0.8 : caseSplitsOpacityscale(point.splits_on_x);
+    })
+    .style('stroke-width',"0px")
+    .call(colorDataPoint)
+  .transition()
+    .duration(update_duration)
+    .attr('transform', function(point) {
+        return 'translate(' + scales.x(point[__.axisKey.x]) + ',' +
+        scales.y(point[ __.axisKey.y ]) + ')';});
+
+
+var data_text = data_surface.select('.data_labels')
+                    .selectAll('.data_totals')
+                    .data([], String );
+
+data_text.exit().remove();
+
+  }
+
 
 function drawScatterplot(data_points) {
 
@@ -500,7 +522,7 @@ function drawData() {
   cleanDisplay();
   
   if (__.dataType['mix'] === 'nn') {
-    drawScatterplot(data_points);
+    drawScatterplot_canvas(data_points);
   }
   else if ( ( __.dataType['x'] == 'n') ^ ( __.dataType['y'] =='n' ) ) {
     drawMultipleKDE(data_points);
