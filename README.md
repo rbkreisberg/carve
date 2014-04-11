@@ -11,15 +11,15 @@ Carve accepts numerical and categorical data.  Based on the types of data, it di
 
 *Numerical vs. Numerical Scatterplot*
 
-![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_scatterplot.png)
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/images/scatterplot.png)
 
 *Numerical vs Categorical KDE plot*
 
-![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_kde.png)
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/images/kde.png)
 
 *Categorical vs. Categorical Multiple Bar Chart*
 
-![Alt Scatterplot](http://rbkreisberg.github.com/carve/img/carve_bar.png)
+![Alt Scatterplot](http://rbkreisberg.github.com/carve/images/barchart.png)
 
 # What Else?
 
