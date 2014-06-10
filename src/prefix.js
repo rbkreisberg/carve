@@ -20,6 +20,7 @@ Copyright (c) 2012, Kai Chang
       });
    } else {
       // RequireJS isn't being used. Assume underscore and d3 are loaded in <script> tags
-      factory(_, d3);
+      // Assign carve to the "global" namespace that has been passed in.
+      root.carve = factory(_, d3);
    }
 }(this, function(_, d3) {

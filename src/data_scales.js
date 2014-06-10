@@ -27,21 +27,52 @@ function parseData() {
       return;
   }
 
-  var element_properties = d3.keys(__.data[0]);
+  var element_properties = d3.keys(__.data[0]),
+    xVals, yVals, xValFunction, yValFunction;
+
+  __.oneDim = false;
+
+  if ( !_.contains(element_properties,  __.id ) ) {
+      console.log("carve: id attribute not detected in data. Specify the id property label in the carve configuration.");
+      return;
+  }
+
+  if ( !_.contains(element_properties,  __.axisKey.x ) ) {
+    __.axisKey.x = __.id;
+    console.log("carve:  x axis attribute not detected in data. Automatically assigning it to id attribute.");
+  }
+  
+  if ( !_.contains(element_properties,  __.axisKey.y ) ) {
+    __.axisKey.y = __.id;
+    console.log("carve:  y axis attribute not detected in data. Automatically assigning it to id attribute.");
+  }
+
   if ( _.contains(element_properties,  __.axisKey.x ) && _.contains(element_properties,  __.axisKey.y ) ) {
-    var xVals = _.uniq(_.pluck(__.data, __.axisKey.x ) ),
-        yVals = _.uniq(_.pluck(__.data,  __.axisKey.y ) );
+    xVals = _.uniq(_.pluck(__.data, __.axisKey.x ) );
+    yVals = _.uniq(_.pluck(__.data, __.axisKey.y ) );
         
     __.dataType.x =  isCategorical( xVals ) ? 'c' : 'n';
     __.dataType.y =  isCategorical( yVals ) ? 'c' : 'n';
 
-    data_array = __.data;
-
-    setDataScales(xVals, yVals);
-    
-  } else {
-    console.error('x or y coordinates not packaged in data');
+  if ( ( __.axisKey.x === __.id  && xVals.length < 11 ) ||  
+      ( __.axisKey.y === __.id && yVals.length < 11 ) ) {
+      __.oneDim = true;
+  } else if ( __.axisKey.x === __.id ) {
+    __.axisKey.x = 'x_dummy';
+    _.forEach( __.data, function( el ) { el[__.axisKey.x] = ''; } );
+    xVals = [''];
+    __.axisLabel.x = 'Density';
+  } else if ( __.axisKey.y === __.id ) {
+    __.axisKey.y = 'y_dummy';
+    _.forEach( __.data, function( el ) { el[__.axisKey.y] = ''; } );
+    yVals = [''];
+    __.axisLabel.y = 'Density';
   }
+    data_array = __.data;
+    
+  }
+
+  setDataScales(xVals, yVals);
 
   return;
 }
@@ -83,8 +114,8 @@ function setDataScales( xVals, yVals ) {  //unique values for each dimension
      }
   });
     __.dataType['mix'] = __.dataType['x'] + __.dataType['y'];
-    if ( __.dataType['mix'] ==='nc' ) createKDEdata('y', 'x');
-    else if ( __.dataType['mix'] ==='cn' ) createKDEdata('x', 'y');
+    if ( __.dataType['mix'] === 'nc' && !__.oneDim) createKDEdata('y', 'x');
+    else if ( __.dataType['mix'] === 'cn' ) createKDEdata('x', 'y');
 
   return updateAxes();
 }

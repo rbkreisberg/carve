@@ -6,7 +6,7 @@
       return factory(_ || root._, d3 || root.d3);
     });
   } else {
-    factory(_, d3);
+    root.carve = factory(_, d3);
   }
 })(this, function(_, d3) {
   function carve(configObj) {
@@ -45,8 +45,8 @@
         y: {}
       },
       axisKey: {
-        x: "x",
-        y: "y"
+        x: null,
+        y: null
       },
       axisInsistCategoricalValues: {
         x: [],
@@ -61,6 +61,7 @@
         list: [],
         colors: pointColors
       },
+      oneDim: false,
       clear: true,
       enableCarving: false,
       splitColor: "#C1573B",
@@ -279,7 +280,7 @@
       var data_text = data_surface.select(".data_labels").selectAll(".data_totals").data([], String);
       data_text.exit().remove();
     }
-    function drawMultipleBarchart_summarized(data_points) {
+    function drawMultipleBarchart(data_points) {
       data_points.transition().duration(update_duration).attr("fill-opacity", 0);
       var numCategories = colorCategories.length;
       var height_axis = "y", extent = scales[height_axis].range(), band = (scales[height_axis].rangeExtent()[1] - scales[height_axis].rangeExtent()[0]) / extent.length, halfBand = band / 2;
@@ -482,7 +483,7 @@
         clearBarPlots();
       }
       if (__.dataType["mix"] !== "nc" && __.dataType["mix"] !== "cn") clearKDE();
-      if (__.dataType["mix"] !== "nn" && __.dataType["mix"] !== "cc") clearDataPoints();
+      if (__.dataType["mix"] !== "nn" && __.dataType["mix"] !== "cc" && __.oneDim === false) clearDataPoints();
     }
     function drawData() {
       var data_points = data_surface.select(".data").selectAll(".data_point").data(data_array, function(d) {
@@ -491,11 +492,11 @@
       data_points.enter().append("path").attr("class", "data_point").style("fill", "#fff").style("stroke", "#fff");
       data_points.exit().transition().duration(update_duration / 2).style("fill-opacity", 0).style("stroke-opacity", 0).remove();
       cleanDisplay();
-      if (__.dataType["mix"] === "nn") {
+      if (__.dataType["mix"] === "nn" || __.oneDim === true) {
         drawScatterplot(data_points);
       } else if (__.dataType["x"] == "n" ^ __.dataType["y"] == "n") {
         drawMultipleKDE(data_points);
-      } else if (__.dataType["mix"] === "cc") drawMultipleBarchart_summarized(data_points);
+      } else if (__.dataType["mix"] === "cc") drawMultipleBarchart(data_points);
     }
     function isCategorical(vals) {
       if (!_.isArray(vals)) return false;
@@ -519,16 +520,45 @@
         console.log("Empty data array.  Nothing to plot.");
         return;
       }
-      var element_properties = d3.keys(__.data[0]);
+      var element_properties = d3.keys(__.data[0]), xVals, yVals, xValFunction, yValFunction;
+      __.oneDim = false;
+      if (!_.contains(element_properties, __.id)) {
+        console.log("carve: id attribute not detected in data. Specify the id property label in the carve configuration.");
+        return;
+      }
+      if (!_.contains(element_properties, __.axisKey.x)) {
+        __.axisKey.x = __.id;
+        console.log("carve:  x axis attribute not detected in data. Automatically assigning it to id attribute.");
+      }
+      if (!_.contains(element_properties, __.axisKey.y)) {
+        __.axisKey.y = __.id;
+        console.log("carve:  y axis attribute not detected in data. Automatically assigning it to id attribute.");
+      }
       if (_.contains(element_properties, __.axisKey.x) && _.contains(element_properties, __.axisKey.y)) {
-        var xVals = _.uniq(_.pluck(__.data, __.axisKey.x)), yVals = _.uniq(_.pluck(__.data, __.axisKey.y));
+        xVals = _.uniq(_.pluck(__.data, __.axisKey.x));
+        yVals = _.uniq(_.pluck(__.data, __.axisKey.y));
         __.dataType.x = isCategorical(xVals) ? "c" : "n";
         __.dataType.y = isCategorical(yVals) ? "c" : "n";
+        if (__.axisKey.x === __.id && xVals.length < 11 || __.axisKey.y === __.id && yVals.length < 11) {
+          __.oneDim = true;
+        } else if (__.axisKey.x === __.id) {
+          __.axisKey.x = "x_dummy";
+          _.forEach(__.data, function(el) {
+            el[__.axisKey.x] = "";
+          });
+          xVals = [ "" ];
+          __.axisLabel.x = "Density";
+        } else if (__.axisKey.y === __.id) {
+          __.axisKey.y = "y_dummy";
+          _.forEach(__.data, function(el) {
+            el[__.axisKey.y] = "";
+          });
+          yVals = [ "" ];
+          __.axisLabel.y = "Density";
+        }
         data_array = __.data;
-        setDataScales(xVals, yVals);
-      } else {
-        console.error("x or y coordinates not packaged in data");
       }
+      setDataScales(xVals, yVals);
       return;
     }
     function scaleRangeValues(values, scale) {
@@ -556,7 +586,7 @@
         }
       });
       __.dataType["mix"] = __.dataType["x"] + __.dataType["y"];
-      if (__.dataType["mix"] === "nc") createKDEdata("y", "x"); else if (__.dataType["mix"] === "cn") createKDEdata("x", "y");
+      if (__.dataType["mix"] === "nc" && !__.oneDim) createKDEdata("y", "x"); else if (__.dataType["mix"] === "cn") createKDEdata("x", "y");
       return updateAxes();
     }
     function createKDEdata(cat_axis, num_axis) {
@@ -1062,6 +1092,6 @@
     };
     return kde;
   };
-  carve.version = "0.1.3";
+  carve.version = "0.1.4";
   return carve;
 });
