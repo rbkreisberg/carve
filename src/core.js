@@ -43,8 +43,8 @@ var __ = {
             "y" : {}
         },
     axisKey : {
-            "x" : "x",
-            "y" : "y"
+            "x" : null,
+            "y" : null
         },
     axisInsistCategoricalValues : {
           "x" : [],
@@ -57,6 +57,7 @@ var __ = {
                 list:[],
                 colors: pointColors
               },
+    oneDim : false,
     clear : true,
 
     //Splitting related parameters

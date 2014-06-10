@@ -496,8 +496,8 @@ function cleanDisplay() {
     clearDataLabels();
     clearBarPlots();
   }
-  if (__.dataType['mix'] !== 'nc' && __.dataType['mix'] !== 'cn' ) clearKDE();
-  if (__.dataType['mix'] !== 'nn' && __.dataType['mix'] !== 'cc' ) clearDataPoints();
+  if ( __.dataType['mix'] !== 'nc' && __.dataType['mix'] !== 'cn' ) clearKDE();
+  if ( __.dataType['mix'] !== 'nn' && __.dataType['mix'] !== 'cc' && __.oneDim === false ) clearDataPoints();
 }
 
 function drawData() {
@@ -521,8 +521,9 @@ function drawData() {
 
   cleanDisplay();
   
-  if (__.dataType['mix'] === 'nn') {
-    drawScatterplot_canvas(data_points);
+
+  if (__.dataType['mix'] === 'nn' || __.oneDim === true ) {
+    drawScatterplot(data_points);
   }
   else if ( ( __.dataType['x'] == 'n') ^ ( __.dataType['y'] =='n' ) ) {
     drawMultipleKDE(data_points);
