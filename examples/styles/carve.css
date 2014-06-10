@@ -1,0 +1,56 @@
+svg.cv {
+    background: #FFF;
+}
+
+.cv_wrapper .data_point {
+    stroke-width: 0px;
+    shape-rendering: crispEdges;
+}
+
+.cv_wrapper .axis path,.cv_wrapper .axis line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2.0px;
+    shape-rendering: crispEdges;
+}
+
+.cv_wrapper .kde_line {
+    shape-rendering: none;
+    stroke-width: 1.5px;
+    visibility: hidden;
+}
+
+.cv_wrapper .y.axis path, .cv_wrapper .y.axis line{
+    stroke:#aaa;
+}
+
+.cv_wrapper .x.axis path, .cv_wrapper .x.axis line {
+    stroke:none;
+}
+
+.axis_label, .ticks {
+    font-size:16px;
+}
+
+.cv_wrapper .data_totals {
+    font-size: 16px;
+    font-weight: 400;
+    shape-rendering: crispEdges;
+}
+
+.cv_wrapper .data_labels {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.cv_wrapper {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: 800px;
+}
+
+.cv_wrapper .cv {
+    position: absolute;
+}
