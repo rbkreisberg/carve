@@ -17,11 +17,17 @@
         </style>
     </head>
     <body>    
-            <div style="margin-left:90px; width:800px;">
+            <div style="margin-left:90px; width:1600px;">
                 <h3>Carve Demo: One Dimensional Data</h3>
-                <div id="plot1" style="height:700px;width:500px;"></div>
-                <div id="plot2" style="height:700px;width:500px;"></div>
-                <div id="plot3" style="height:700px;width:500px;"></div>
+                
+
+                <div id="plot0a" style="height:500px;width:765px;display:inline-block;"></div><div id="plot0b" style="height:500px;width:765px;display:inline-block;padding-left:50px;"></div>
+                
+                <div id="plot1a" style="height:500px;width:765px;display:inline-block;"></div><div id="plot1b" style="height:500px;width:765px;display:inline-block;padding-left:50px;"></div>
+                
+                <div id="plot2a" style="height:500px;width:765px;display:inline-block;"></div><div id="plot2b" style="height:500px;width:765px;display:inline-block;"></div>
+                
+                <div id="plot3a" style="height:500px;width:765px;display:inline-block;"></div><div id="plot3b" style="height:500px;width:765px;display:inline-block;"></div>
             </div>
             
     <!--[if lt IE 7]>    
@@ -41,23 +47,49 @@
 <script type="text/javascript" lang="javascript">
 var data = [
 
-            { id: "Sparky", height : 10, weight : 14,  breed : "dachsund" },
-            { id: "Lucy", height : 24, weight : 64,  breed : "retriever" },
-            { id: "Chewbaca", height : 33, weight : 180, breed : "great dane" },
-            { id: "Belle", height : 20, weight : 27,  breed : "whippet" },
-            { id: "Crowe", height : 28, weight : 95,  breed : "ridgeback" },
-            { id: "Chico", height : 7,  weight : 6,  breed : "chihuahua" },
-            { id: "Katie", height : 32,  weight : 225,  breed : "mastiff" },
-            { id: "Hamish", height : 27,  weight : 50,  breed : "saluki" }
+            { id: "Sparky", height : 10, weight : 14,  breed : "dachsund", group: 'hound' },
+            { id: "Lucy", height : 24, weight : 64,  breed : "retriever", group: 'sporting' },
+            { id: "Chewbaca", height : 33, weight : 180, breed : "great dane", group: 'working' },
+            { id: "Belle", height : 20, weight : 27,  breed : "whippet", group: 'hound' },
+            { id: "Crowe", height : 28, weight : 95,  breed : "ridgeback", group: 'hound' },
+            { id: "Chico", height : 7,  weight : 6,  breed : "chihuahua", group: 'toy' },
+            { id: "Katie", height : 32,  weight : 225,  breed : "mastiff", group: 'working' },
+            { id: "Hamish", height : 27,  weight : 50,  breed : "saluki", group: 'hound' }
 ];
 
 var carve_obj = carve({
             width : 700,
             height: 500,
-            radius : 20,
-            margin : { top: 15, bottom: 40, left: 15, right: 50 }
+            radius : 10,
+            margin : { top: 15, bottom: 40, left: 65, right: 50 }
         });
-var carve_vis = carve_obj("#plot1");
+
+var carve_vis = carve_obj("#plot0a");
+
+ carve_vis
+        .colorBy({
+            label : "breed",
+            list : _.pluck(data, "breed")
+        })
+        .axisLabel({ x: "Height", y : "Weight (lbs)" })
+        .axisKey({ x: 'height', y : "weight" })
+        .data(data)
+        .render();
+
+ var carve_vis = carve_obj("#plot0b");
+
+ carve_vis
+        .colorBy({
+            label : "breed",
+            list : _.pluck(data, "breed")
+        })
+        .axisLabel({ y: "Height", x : "Weight (lbs)" })
+        .axisKey({ y: 'height', x : "weight" })
+        .data(data)
+        .render();
+
+
+var carve_vis = carve_obj("#plot1a");
 
  carve_vis
         .colorBy({
@@ -66,6 +98,17 @@ var carve_vis = carve_obj("#plot1");
         })
         .axisLabel({ x: "Dog Name", y : "Weight (lbs)" })
         .axisKey({ y : "weight" })
+        .data(data)
+        .render();
+
+carve_vis = carve_obj("#plot1b");
+carve_vis
+        .colorBy({
+            label : "breed",
+            list : _.pluck(data, "breed")
+        })
+        .axisLabel({ y: "Dog Name", x : "Weight (lbs)" })
+        .axisKey({ x : "weight" })
         .data(data)
         .render();
 
@@ -86,10 +129,11 @@ var data2 = _.map(_.range(100), function(index) { return { id: guid(), height: (
 var carve_obj = carve({
             width : 700,
             height: 500,
-            radius : 20,
+            radius : 10,
             margin : { top: 15, bottom: 40, left: 15, right: 50 }
         });
-var carve_vis = carve_obj("#plot2");
+
+carve_vis = carve_obj("#plot2a");
 
  carve_vis
         .axisLabel({ x : "Height (in)" })
@@ -97,6 +141,46 @@ var carve_vis = carve_obj("#plot2");
         .data(data2)
         .render();
 
+carve_vis = carve_obj("#plot2b");
+
+ carve_vis
+        .axisLabel({ y : "Height (in)" })
+        .axisKey({ y : "height" })
+        .data(data2)
+        .render();
+
+var labels1 = ['a','b','c','d'];
+var labels2 = ['w','x','y','z'];
+
+var data3 = _.map( _.range(100), function(index) { 
+    return { 
+        id: guid(), 
+        type : labels1[ Math.floor(Math.random() * labels1.length) ], 
+        variety: labels2[ Math.floor(Math.random() * labels2.length) ]
+    }; 
+} );
+
+var carve_obj = carve({
+            width : 700,
+            height: 500,
+            radius : 10,
+            margin : { top: 15, bottom: 40, left: 15, right: 50 }
+        });
+var carve_vis = carve_obj("#plot3a");
+
+ carve_vis
+        .axisLabel({ x : "Type", y : 'Variety' })
+        .axisKey({ x : "type", y : 'variety' })
+        .data(data3)
+        .render();
+
+carve_vis = carve_obj("#plot3b");
+
+ carve_vis
+        .axisLabel({ y : "Type", x : 'Variety' })
+        .axisKey({ y : "type", x : 'variety' })
+        .data(data3)
+        .render();
 
 </script>
 
