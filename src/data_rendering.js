@@ -14,9 +14,9 @@ function drawAxes() {
                       }
                 };
 
-  if (label_surface.select('.axis').node() !== null) return updateAxes();
+  if (axis_surface.select('.axis').node() !== null) return updateAxes();
  ['x','y'].forEach( function(axis) {
-     var axisEl = label_surface.append('g')
+     var axisEl = axis_surface.append('g')
       .attr('class', axis + 'axis axis');
 
      adjustTicks(axis);
@@ -38,22 +38,23 @@ function drawAxes() {
 
 function adjustTicks(axis) {
   var tickSizes = {
-          "y" : [ 0, -1*displayWidth() ],
-          "x" : [ 0, 0]
+          "y" : [ 0, 5 ],
+          "x" : [ 0, 5]
               },
-      axisEl = label_surface.select('.' + axis + 'axis.axis');
+      axisEl = axis_surface.select('.' + axis + 'axis.axis');
      
       axisEl.select('.categorical_ticks').remove();
 
   var decimalFormat = d3.format(".4r"),
-       format = (isNumerical(scales[axis].domain()) && !isInt(scales[axis].domain()) ) ? decimalFormat : null;
+       format = (isNumerical(scales[axis].domain()) && !isInt(scales[axis].domain()) ) ? null : null;
   
   if ( __.dataType[axis] === 'c' ) {
 
-    var ordinal = axisEl.append('g').attr('class','categorical_ticks'),
+    var ordinal = label_surface.append('g').attr('class','categorical_ticks'),
         ticks = scales[axis].range();
+        ticks = ticks.slice(0,ticks.length-1);
 
-    axisFn[axis].tickSize(tickSizes[axis][0]).tickPadding(10);
+    axisFn[axis].tickSize(tickSizes[axis][0]).tickPadding(8);
 
     var extent  = scales[axis].range(),
       band = ((scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / extent.length),
@@ -67,7 +68,7 @@ function adjustTicks(axis) {
       lines.enter()
         .append('line')
         .style('stroke', '#888')
-        .style('stroke-width', '2px')
+        .style('stroke-width', '1px')
         .attr('x1', 0)
         .attr('x2', displayWidth())
         .attr('y1', function(point) { return point - halfBand; } )
@@ -77,7 +78,7 @@ function adjustTicks(axis) {
       lines.enter()
         .append('line')
         .style('stroke', '#888')
-        .style('stroke-width', '2px')
+        .style('stroke-width', '1px')
         .attr('x1',function(point) { return point + halfBand; })
         .attr('x2', function(point) { return point + halfBand; })
         .attr('y1', 0 )
@@ -92,7 +93,7 @@ function adjustTicks(axis) {
 
 function updateAxes() {
   ['y','x'].forEach( function(axis) {
-    var axisEl = label_surface.select('.' + axis + 'axis.axis');
+    var axisEl = axis_surface.select('.' + axis + 'axis.axis');
     axisScales[axis] = scales[axis].copy();
     if (__.dataType[axis] === 'c') {
       axisScales[axis].domain(scales[axis].domain().map(function (val) { return mapCategoricalValues(val, axis);}));
@@ -104,11 +105,10 @@ function updateAxes() {
 
 function clearAxes() {
    ['y','x'].forEach( function(axis) {
-      var axis = label_surface.select('.' + axis + 'axis');
-      axis.selectAll('.tick text').remove();
-      axis.selectAll('.categorical_ticks').remove();
-
-      axis.selectAll('.axis_label').text('');
+      var axisEl = axis_surface.select('.' + axis + 'axis');
+      axisEl.selectAll('.tick text').remove();
+      axisEl.selectAll('.categorical_ticks').remove();
+      axisEl.selectAll('.axis_label').text('');
   });
 }
 
@@ -120,8 +120,8 @@ function mapCategoricalValues(value, axis) {
 
 function updateAxisLabels() {
 
-     var y_axis = label_surface.select('.yaxis'),
-      x_axis = label_surface.select('.xaxis');
+     var y_axis = axis_surface.select('.yaxis'),
+      x_axis = axis_surface.select('.xaxis');
 
       y_axis.select('.axis_label').text(__.axisLabel.y);
       x_axis.select('.axis_label').text(__.axisLabel.x);
@@ -304,7 +304,7 @@ bar_elements
       .attr('d',barPath)
       .attr('transform', function(bar) { return 'translate(' +
                       (scales.x(bar.x) + category_offset(String(bar.colorBy)) ) +
-                        ',' + (scales.y(bar.y) + halfBand -1) + ')'; });
+                        ',' + (scales.y(bar.y) + halfBand) + ')'; });
   }
 
   function vertical_offset( point ) { return barscale(point[3]); }
@@ -455,8 +455,8 @@ function colorDataPoint(selector) {
           return  __.colorFn(String(point[__.colorBy.label]));
     })
     .style('fill-opacity', function(point) { return __.highlight && __.highlight.length ?
-      ( __.highlight === String(point[__.colorBy.label]) ? 0.8 : 0.0 )
-      : 0.5;
+      ( __.highlight === String(point[__.colorBy.label]) ? 0.9 : 0.3 )
+      : 0.9;
       })
     .style('stroke', null);
   return selector;
@@ -465,7 +465,7 @@ function colorDataPoint(selector) {
 function colorKDEArea(selector) {
   selector
       .style('fill-opacity', function(obj) {
-        return __.highlight && __.highlight.length ? ( __.highlight === obj.key ? 0.8 : 0.0 ) : 0.3;
+        return __.highlight && __.highlight.length ? ( __.highlight === obj.key ? 0.9 : 0.3 ) : 0.9;
       });
 }
 

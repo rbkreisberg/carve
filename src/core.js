@@ -22,7 +22,7 @@ var __ = {
               "left" : 30,
               "right" : 10
             },
-    radius : 4,
+    radius : 6,
     dataType : {
                  "x" : 'n',
                  "y" : 'n',
@@ -98,7 +98,7 @@ var __ = {
       domainScalingFactor = 1.04,
       caseSplitsOpacityscale,
       padding = { top: 15, bottom: 15, left: 30, right: 20 },
-      shapes = ['square','circle','cross','diamond','triangle-down','triangle-up'],
+      shapes = ['circle','square','cross','diamond','triangle-down','triangle-up'],
       symbolSize = Math.pow(__.radius,2),
       symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]),
       symbolMap = d3.scale.ordinal().domain([0,5]).range(shapes),
@@ -112,7 +112,7 @@ var __ = {
           "y" : d3.svg.axis().orient("left")
         },
       update_duration = 300,
-      bottom_surface, label_surface, split_surface, data_surface, partition_surface; // groups for axes, brushes
+      bottom_surface, label_surface, axis_surface, split_surface, data_surface, partition_surface; // groups for axes, brushes
 
   var canvas = {},
          ctx = {};
@@ -178,16 +178,19 @@ var __ = {
                     .attr("width", outerWidth())
                     .attr("height", outerHeight());
 
-      label_surface = cv.svg.append('g')
+    label_surface = cv.svg.append('g')
                     .attr('class','label_surface')
                     .attr('transform','translate(' + (padding.left + __.margin.left + 10) + ',' +  (padding.top +  __.margin.top + 10 ) + ')');
-    
 
     var plot_offset = cv.svg.append('svg')
                         .attr('clip','url(#viewbox_clip)')
                         .attr('overflow','hidden')
                         .attr('x',__.margin.left)
                         .attr('y', __.margin.top);
+    
+    axis_surface = cv.svg.append('g')
+                      .attr('class','axis_surface')
+                      .attr('transform','translate(' + (padding.left + __.margin.left + 10) + ',' +  (padding.top +  __.margin.top + 10 ) + ')');
                        
     bottom_surface = plot_offset.append('g')
                         .attr('transform','translate(' + padding.left + ',' + padding.top + ')');

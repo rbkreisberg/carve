@@ -83,7 +83,12 @@ function scaleRangeValues( values, scale) {
       high = values[1],
       width = high - low || 1,
       margin = width * (scale - 1);
-      
+
+      //if low is close to zero.  use zero.
+      if ( low - margin <= 0 && 0 <= low + margin ) { return [0, high + margin]; }
+      //if high is close to zero.  use zero.
+      else if (high - margin <= 0 && 0 <= high + margin ) { return [low - margin, 0]; }
+
       return [ low - margin, high + margin ];
 }
 
@@ -128,13 +133,12 @@ function createKDEdata( cat_axis, num_axis ) {
 
   var points = [],
       kde_points = [],
-          obj = {},
-          num_axis_size = scales[num_axis].domain()[1] - scales[num_axis].domain()[0],
-          min_bandwidth = num_axis_size / 100;
+      obj = {},
+      num_axis_size = scales[num_axis].domain()[1] - scales[num_axis].domain()[0],
+      min_bandwidth = num_axis_size / 100;
 
-      var class_points = [],
-      class_num_points = {};
-
+  var class_points = [],
+  class_num_points = {};
     
   scales[cat_axis].domain().forEach( function(category) {
     obj = {};
