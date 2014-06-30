@@ -21,7 +21,7 @@
         left: 30,
         right: 10
       },
-      radius: 4,
+      radius: 6,
       dataType: {
         x: "n",
         y: "n",
@@ -99,12 +99,12 @@
       bottom: 15,
       left: 30,
       right: 20
-    }, shapes = [ "square", "circle", "cross", "diamond", "triangle-down", "triangle-up" ], symbolSize = Math.pow(__.radius, 2), symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]), symbolMap = d3.scale.ordinal().domain([ 0, 5 ]).range(shapes), symbolFunction = _.compose(symbol.type, symbolMap), colorCategories = [], colorCategoryIsNumerical = false, strokeFunction = function(index) {
+    }, shapes = [ "circle", "square", "cross", "diamond", "triangle-down", "triangle-up" ], symbolSize = Math.pow(__.radius, 2), symbol = d3.svg.symbol().size(symbolSize).type(shapes[0]), symbolMap = d3.scale.ordinal().domain([ 0, 5 ]).range(shapes), symbolFunction = _.compose(symbol.type, symbolMap), colorCategories = [], colorCategoryIsNumerical = false, strokeFunction = function(index) {
       return splitStrokeColors[index];
     }, data_array = [], axisFn = {
       x: d3.svg.axis().orient("bottom"),
       y: d3.svg.axis().orient("left")
-    }, update_duration = 300, bottom_surface, label_surface, split_surface, data_surface, partition_surface;
+    }, update_duration = 300, bottom_surface, label_surface, axis_surface, split_surface, data_surface, partition_surface;
     var canvas = {}, ctx = {};
     var splitStrokeColors = [ "red", "green", "black" ], split_data = {
       x: {},
@@ -126,6 +126,7 @@
       defs.append("svg:clipPath").attr("id", "viewbox_clip").append("svg:rect").attr("x", "0").attr("y", "0").attr("width", outerWidth()).attr("height", outerHeight());
       label_surface = cv.svg.append("g").attr("class", "label_surface").attr("transform", "translate(" + (padding.left + __.margin.left + 10) + "," + (padding.top + __.margin.top + 10) + ")");
       var plot_offset = cv.svg.append("svg").attr("clip", "url(#viewbox_clip)").attr("overflow", "hidden").attr("x", __.margin.left).attr("y", __.margin.top);
+      axis_surface = cv.svg.append("g").attr("class", "axis_surface").attr("transform", "translate(" + (padding.left + __.margin.left + 10) + "," + (padding.top + __.margin.top + 10) + ")");
       bottom_surface = plot_offset.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
       partition_surface = bottom_surface.append("g").attr("transform", "translate(10,10)").attr("class", "partition_surface");
       var top_surface = plot_offset.append("g").attr("transform", "translate(" + padding.left + "," + padding.top + ")");
@@ -216,9 +217,9 @@
           return "translate(" + plotWidth() + "," + displayHeight() / 2 + ") rotate(90)";
         }
       };
-      if (label_surface.select(".axis").node() !== null) return updateAxes();
+      if (axis_surface.select(".axis").node() !== null) return updateAxes();
       [ "x", "y" ].forEach(function(axis) {
-        var axisEl = label_surface.append("g").attr("class", axis + "axis axis");
+        var axisEl = axis_surface.append("g").attr("class", axis + "axis axis");
         adjustTicks(axis);
         axisEl.append("g").attr("class", "ticks").attr("transform", axis_transform[axis]).call(axisFn[axis]);
         axisEl.append("text").style("text-anchor", "middle").attr("class", "axis_label").attr("transform", label_transform[axis]).text(__.axisLabel[axis]);
@@ -226,24 +227,25 @@
     }
     function adjustTicks(axis) {
       var tickSizes = {
-        y: [ 0, -1 * displayWidth() ],
-        x: [ 0, 0 ]
-      }, axisEl = label_surface.select("." + axis + "axis.axis");
+        y: [ 0, 5 ],
+        x: [ 0, 5 ]
+      }, axisEl = axis_surface.select("." + axis + "axis.axis");
       axisEl.select(".categorical_ticks").remove();
-      var decimalFormat = d3.format(".4r"), format = isNumerical(scales[axis].domain()) && !isInt(scales[axis].domain()) ? decimalFormat : null;
+      var decimalFormat = d3.format(".4r"), format = isNumerical(scales[axis].domain()) && !isInt(scales[axis].domain()) ? null : null;
       if (__.dataType[axis] === "c") {
-        var ordinal = axisEl.append("g").attr("class", "categorical_ticks"), ticks = scales[axis].range();
-        axisFn[axis].tickSize(tickSizes[axis][0]).tickPadding(10);
+        var ordinal = label_surface.append("g").attr("class", "categorical_ticks"), ticks = scales[axis].range();
+        ticks = ticks.slice(0, ticks.length - 1);
+        axisFn[axis].tickSize(tickSizes[axis][0]).tickPadding(8);
         var extent = scales[axis].range(), band = (scales[axis].rangeExtent()[1] - scales[axis].rangeExtent()[0]) / extent.length, halfBand = band / 2;
         var lines = ordinal.selectAll("line").data(ticks);
         if (axis == "y") {
-          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "2px").attr("x1", 0).attr("x2", displayWidth()).attr("y1", function(point) {
+          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "1px").attr("x1", 0).attr("x2", displayWidth()).attr("y1", function(point) {
             return point - halfBand;
           }).attr("y2", function(point) {
             return point - halfBand;
           });
         } else {
-          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "2px").attr("x1", function(point) {
+          lines.enter().append("line").style("stroke", "#888").style("stroke-width", "1px").attr("x1", function(point) {
             return point + halfBand;
           }).attr("x2", function(point) {
             return point + halfBand;
@@ -254,7 +256,7 @@
     }
     function updateAxes() {
       [ "y", "x" ].forEach(function(axis) {
-        var axisEl = label_surface.select("." + axis + "axis.axis");
+        var axisEl = axis_surface.select("." + axis + "axis.axis");
         axisScales[axis] = scales[axis].copy();
         if (__.dataType[axis] === "c") {
           axisScales[axis].domain(scales[axis].domain().map(function(val) {
@@ -267,10 +269,10 @@
     }
     function clearAxes() {
       [ "y", "x" ].forEach(function(axis) {
-        var axis = label_surface.select("." + axis + "axis");
-        axis.selectAll(".tick text").remove();
-        axis.selectAll(".categorical_ticks").remove();
-        axis.selectAll(".axis_label").text("");
+        var axisEl = axis_surface.select("." + axis + "axis");
+        axisEl.selectAll(".tick text").remove();
+        axisEl.selectAll(".categorical_ticks").remove();
+        axisEl.selectAll(".axis_label").text("");
       });
     }
     function mapCategoricalValues(value, axis) {
@@ -281,7 +283,7 @@
       return value;
     }
     function updateAxisLabels() {
-      var y_axis = label_surface.select(".yaxis"), x_axis = label_surface.select(".xaxis");
+      var y_axis = axis_surface.select(".yaxis"), x_axis = axis_surface.select(".xaxis");
       y_axis.select(".axis_label").text(__.axisLabel.y);
       x_axis.select(".axis_label").text(__.axisLabel.x);
     }
@@ -380,7 +382,7 @@
         selector.style("fill", function(bar) {
           return __.colorFn(bar["colorBy"]);
         }).attr("d", barPath).attr("transform", function(bar) {
-          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand - 1) + ")";
+          return "translate(" + (scales.x(bar.x) + category_offset(String(bar.colorBy))) + "," + (scales.y(bar.y) + halfBand) + ")";
         });
       }
       function vertical_offset(point) {
@@ -480,13 +482,13 @@
       selector.style("fill", function(point) {
         return __.colorFn(String(point[__.colorBy.label]));
       }).style("fill-opacity", function(point) {
-        return __.highlight && __.highlight.length ? __.highlight === String(point[__.colorBy.label]) ? .8 : 0 : .5;
+        return __.highlight && __.highlight.length ? __.highlight === String(point[__.colorBy.label]) ? .9 : .3 : .9;
       }).style("stroke", null);
       return selector;
     }
     function colorKDEArea(selector) {
       selector.style("fill-opacity", function(obj) {
-        return __.highlight && __.highlight.length ? __.highlight === obj.key ? .8 : 0 : .3;
+        return __.highlight && __.highlight.length ? __.highlight === obj.key ? .9 : .3 : .9;
       });
     }
     function clearDataPoints() {
@@ -592,6 +594,11 @@
     }
     function scaleRangeValues(values, scale) {
       var low = values[0], high = values[1], width = high - low || 1, margin = width * (scale - 1);
+      if (low - margin <= 0 && 0 <= low + margin) {
+        return [ 0, high + margin ];
+      } else if (high - margin <= 0 && 0 <= high + margin) {
+        return [ low - margin, 0 ];
+      }
       return [ low - margin, high + margin ];
     }
     function setDataScales(xVals, yVals) {
@@ -1121,6 +1128,6 @@
     };
     return kde;
   };
-  carve.version = "0.1.6";
+  carve.version = "0.1.7";
   return carve;
 });
